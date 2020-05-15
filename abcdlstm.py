@@ -50,7 +50,6 @@ if __name__ == '__main__':
             for line in f:
                 seq=np.zeros((max_seq,), dtype=int)
                 next=np.zeros((max_seq,), dtype=int)
-                slen=np.zeros((1),dtype=int)
                 tokens=line.split()
                 assert len(tokens)<max_seq
                 for i,token in enumerate(tokens):
@@ -58,7 +57,7 @@ if __name__ == '__main__':
                     if i>0:
                         next[i-1]=vocab[token]
                 next[i]=vocab["<END>"]
-                slen[0]=len(tokens)
+                slen=len(tokens)
                 split["seq"].append(seq)
                 split["next"].append(next)
                 split["slen"].append(slen)
@@ -68,7 +67,7 @@ if __name__ == '__main__':
 
         tfseq  =tf.placeholder(tf.int32,shape=[None,max_seq])
         tfnext =tf.placeholder(tf.int32,shape=[None,max_seq])
-        tfslen =tf.placeholder(tf.float32,shape=[None])
+        tfslen =tf.placeholder(tf.int32,shape=[None])
         tfbs   =tf.placeholder(tf.int32,shape=[])
         
         tfmask = tf.sequence_mask(tfslen,maxlen=max_seq,dtype=tf.float32)
