@@ -30,47 +30,49 @@ if __name__ == '__main__':
 
     max_seq   =100
 
-
-    vocab={"pad":0, "a1":1, "b1":2, "a2":3, "b2":4, "c1":5, "d1":6, "c2":7, "d2":8, "c3":9, "d3":10, "e":11, "oo":12}
+    vocab=dict()
+    vocab["<PAD>"]=0
+    vocab["<END>"]=1
+    i=2
+    with open("vocab") as f:
+        for line in f:
+            token=line.rstrip("\n")
+            vocab[token]=i
+            i=i+1
     v_size=len(vocab)
 
 
-    train={"seq":list(), "next":list(), "mask":list(), "bdmask":list()}
-    dev={"seq":list(), "next":list(), "mask":list(), "bdmask":list()}
-    test={"seq":list(), "next":list(), "mask":list(), "bdmask":list()}
-    longdev={"seq":list(), "next":list(), "mask":list(), "bdmask":list()}
+    train={"seq":list(), "next":list(), "slen":list()}
+    dev={"seq":list(), "next":list(), "slen":list()}
+    test={"seq":list(), "next":list(), "slen":list()}
+    longdev={"seq":list(), "next":list(), "slen":list()}
     for split,fname in [(train,"abcdtrain"),(dev,"abcddev"),(test,"abcdtest")]:
         with open(fname) as f:
             for line in f:
                 seq=np.zeros((max_seq,), dtype=int)
                 next=np.zeros((max_seq,), dtype=int)
-                mask=np.zeros((max_seq,), dtype=float)
-                bdmask=np.zeros((max_seq,), dtype=float)
                 slen=np.zeros((1),dtype=int)
-                chars=line.split()
-                assert len(chars)<max_seq
-                for i,char in enumerate(chars):
-                    seq[i]=vocab[char]
-                    mask[i]=1
-                    if char[1]=="2":
-                        bdmask[i-1]=1
+                tokens=line.split()
+                assert len(tokens)<max_seq
+                for i,token in enumerate(tokens):
+                    seq[i]=vocab[token]
                     if i>0:
-                        next[i-1]=vocab[char]
-                next[i]=vocab["e"]
+                        next[i-1]=vocab[token]
+                next[i]=vocab["<END>"]
+                slen[0]=len(tokens)
                 split["seq"].append(seq)
                 split["next"].append(next)
-                split["mask"].append(mask)
-                split["bdmask"].append(bdmask)
-
+                split["slen"].append(slen)
     graph=tf.Graph()
 
     with graph.as_default():
 
         tfseq  =tf.placeholder(tf.int32,shape=[None,max_seq])
         tfnext =tf.placeholder(tf.int32,shape=[None,max_seq])
-        tfmask =tf.placeholder(tf.float32,shape=[None,max_seq])
-        tfbdmask =tf.placeholder(tf.float32,shape=[None,max_seq])
+        tfslen =tf.placeholder(tf.float32,shape=[None])
         tfbs   =tf.placeholder(tf.int32,shape=[])
+        
+        tfmask = tf.sequence_mask(tfslen,maxlen=max_seq,dtype=tf.float32)
 
         e=tf.get_variable("e", shape=[v_size, emb_size], initializer=tf.contrib.layers.xavier_initializer())
         
@@ -88,12 +90,6 @@ if __name__ == '__main__':
         logits = tf.stack(outputs,axis=1)
 
         loss = tf.contrib.seq2seq.sequence_loss(logits,tfnext,tfmask)
-        pred = tf.cast(tf.argmax(logits,axis=2),tf.int32)
-        #acc=tf.constant(0)
-        correct=tf.multiply(tf.cast(tf.equal(tfnext,pred),tf.float32),tfbdmask)
-        acc=tf.reduce_sum(correct)
-        msum=tf.reduce_sum(tfbdmask)
-        accbypos=tf.constant(0)
         optimizer = tf.train.AdamOptimizer(rate).minimize(loss)
         init = tf.initialize_all_variables()
 
@@ -110,44 +106,25 @@ if __name__ == '__main__':
         acc_sum=0
         m_sum=0
         for epoch,batch,bs in batcher(train,epochs,batch_size):
-            feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfmask:batch["mask"], tfbdmask:batch["bdmask"], tfbs:bs}
-            _, loss_val, acc_val, m_val = sess.run([optimizer,loss,acc,msum], feed_dict=feed_dict)
+            feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfmask:batch["slen"], tfbs:bs}
+            _, loss_val = sess.run([optimizer,loss], feed_dict=feed_dict)
 
             loss_sum=loss_sum+loss_val
-            acc_sum=acc_sum+acc_val
-            m_sum=m_sum+m_val
             n=n+bs
             if i%r == 0:
-                print("train:",epoch,n,loss_sum/n,acc_sum/m_sum)
+                print("train:",epoch,n,loss_sum/n)
                 loss_sum=0
-                acc_sum=0
-                m_sum=0
                 n=0
             if (i-r)%dr == 0:
                 dloss_sum=0
-                dacc_sum=0
-                dm_sum=0
-                daccbypos_sum=0
                 dn=0
                 for depoch,dbatch,dbs in batcher(dev,1,batch_size):
-                    feed_dict={tfseq:dbatch["seq"], tfnext:dbatch["next"], tfmask:dbatch["mask"], tfbdmask:dbatch["bdmask"], tfbs:dbs}
-                    dloss_val, dacc_val, dm_val = sess.run([loss,acc, msum], feed_dict=feed_dict)
+                    feed_dict={tfseq:dbatch["seq"], tfnext:dbatch["next"], tfmask:dbatch["slen"], tfbs:dbs}
+                    dloss_val, = sess.run([loss], feed_dict=feed_dict)
                     dloss_sum=dloss_sum+dloss_val
-                    dacc_sum=dacc_sum+dacc_val
-                    dm_sum=dm_sum+dm_val
-                    #daccbypos_sum=daccbypos_sum+daccbypos_val
                     dn=dn+dbs
-                print("***** val:",epoch,dn,dloss_sum/dn,dacc_sum/dm_sum,daccbypos_sum/dn, "*****")
+                print("***** val:",epoch,dn,dloss_sum/dn "*****")
                 dloss_sum=0
-                dacc_sum=0
-                dm_sum=0
-                daccbypos_sum=0
-                acc14_sum=0
-                acc16_sum=0
-                acc18_sum=0
-                sum14_sum=0
-                sum16_sum=0
-                sum18_sum=0
                 dn=0
             i=i+1
 
