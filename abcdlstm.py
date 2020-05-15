@@ -80,12 +80,15 @@ if __name__ == '__main__':
 
         lstm = tf.nn.rnn_cell.LSTMCell(lstm_size)
         state = lstm.zero_state(tfbs,dtype=tf.float32)
-        inputs=tf.unstack(embedded,axis=1)
-        outputs=[None]*max_seq
-        for i in range(max_seq):
-            o, state = lstm(inputs[i], state)
-            outputs[i]=tf.matmul(o,w)
-        logits = tf.stack(outputs,axis=1)
+        #inputs=tf.unstack(embedded,axis=1)
+        #outputs=[None]*max_seq
+        #for i in range(max_seq):
+        #    o, state = lstm(inputs[i], state)
+        #    outputs[i]=tf.matmul(o,w)
+        #logits = tf.stack(outputs,axis=1)
+        
+        outputs, state=tf.nn.dynamic_rnn(lstm, embedded, sequence_length=tfslen, initial_state=state, dtype=tf.float32)
+
 
         loss = tf.contrib.seq2seq.sequence_loss(logits,tfnext,tfmask)
         optimizer = tf.train.AdamOptimizer(rate).minimize(loss)
