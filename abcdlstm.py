@@ -3,9 +3,6 @@ import numpy as np
 from random import shuffle
 
 
-longlens=[14,16,18]
-
-
 def batcher(data,epochs,batchsize):
     pointers=list(range(len(data["seq"])))
     for e in range(epochs):
@@ -90,7 +87,7 @@ if __name__ == '__main__':
         outputs, state=tf.nn.dynamic_rnn(lstm, embedded, sequence_length=tfslen, initial_state=state, dtype=tf.float32)
 
 
-        loss = tf.contrib.seq2seq.sequence_loss(logits,tfnext,tfmask)
+        loss = tf.contrib.seq2seq.sequence_loss(outputs,tfnext,tfmask)
         optimizer = tf.train.AdamOptimizer(rate).minimize(loss)
         init = tf.initialize_all_variables()
 
