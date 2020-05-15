@@ -78,7 +78,7 @@ if __name__ == '__main__':
 
         embedded=tf.gather(e,tfseq)
 
-        lstm = tf.contrib.rnn.BasicLSTMCell(lstm_size)
+        lstm = tf.nn.rnn_cell.LSTMCell(lstm_size)
         state = lstm.zero_state(tfbs,dtype=tf.float32)
         inputs=tf.unstack(embedded,axis=1)
         outputs=[None]*max_seq
