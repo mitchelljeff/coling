@@ -123,7 +123,7 @@ if __name__ == '__main__':
                     dloss_val, = sess.run([loss], feed_dict=feed_dict)
                     dloss_sum=dloss_sum+dloss_val
                     dn=dn+dbs
-                print("***** val:",epoch,dn,dloss_sum/dn "*****")
+                print("***** val:",epoch,dn,dloss_sum/dn, "*****")
                 dloss_sum=0
                 dn=0
             i=i+1
