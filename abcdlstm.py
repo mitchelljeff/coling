@@ -71,12 +71,14 @@ if __name__ == '__main__':
 
         e=tf.get_variable("e", shape=[v_size, emb_size], initializer=tf.contrib.layers.xavier_initializer())
         
-        w=tf.get_variable("w", shape=[lstm_size, v_size], initializer=tf.contrib.layers.xavier_initializer())
+        w=tf.get_variable("w", shape=[1, 1, lstm_size, v_size], initializer=tf.contrib.layers.xavier_initializer())
 
         embedded=tf.gather(e,tfseq)
 
-        lstm = tf.nn.rnn_cell.LSTMCell(lstm_size)
-        state = lstm.zero_state(tfbs,dtype=tf.float32)
+        lstm1 = tf.nn.rnn_cell.LSTMCell(lstm_size)
+        state1 = lstm1.zero_state(tfbs,dtype=tf.float32)
+        lstm2 = tf.nn.rnn_cell.LSTMCell(lstm_size)
+        state2 = lstm2.zero_state(tfbs,dtype=tf.float32)
         #inputs=tf.unstack(embedded,axis=1)
         #outputs=[None]*max_seq
         #for i in range(max_seq):
@@ -84,10 +86,12 @@ if __name__ == '__main__':
         #    outputs[i]=tf.matmul(o,w)
         #logits = tf.stack(outputs,axis=1)
         
-        outputs, state=tf.nn.dynamic_rnn(lstm, embedded, sequence_length=tfslen, initial_state=state, dtype=tf.float32)
+        outputs1, state=tf.nn.dynamic_rnn(lstm1, embedded, sequence_length=tfslen, initial_state=state1, dtype=tf.float32)
+        outputs2, state=tf.nn.dynamic_rnn(lstm2, outputs1, sequence_length=tfslen, initial_state=state2, dtype=tf.float32)
+        logits=tf.reduce_sum(tf.multiply(tf.expand_dims(outputs2,axis=-1),w),axis=2)
 
 
-        loss = tf.contrib.seq2seq.sequence_loss(outputs,tfnext,tfmask)
+        loss = tf.contrib.seq2seq.sequence_loss(outputs2,tfnext,tfmask)
         optimizer = tf.train.AdamOptimizer(rate).minimize(loss)
         init = tf.initialize_all_variables()
 
