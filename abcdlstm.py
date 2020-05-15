@@ -86,8 +86,8 @@ if __name__ == '__main__':
         #    outputs[i]=tf.matmul(o,w)
         #logits = tf.stack(outputs,axis=1)
         
-        outputs1, state=tf.nn.dynamic_rnn(lstm1, embedded, sequence_length=tfslen, initial_state=state1, dtype=tf.float32)
-        outputs2, state=tf.nn.dynamic_rnn(lstm2, outputs1, sequence_length=tfslen, initial_state=state2, dtype=tf.float32)
+        outputs1, state=tf.nn.dynamic_rnn(lstm1, embedded, sequence_length=tfslen, initial_state=state1, dtype=tf.float32, scope="layer1")
+        outputs2, state=tf.nn.dynamic_rnn(lstm2, outputs1, sequence_length=tfslen, initial_state=state2, dtype=tf.float32, scope="layer2")
         logits=tf.reduce_sum(tf.multiply(tf.expand_dims(outputs2,axis=-1),w),axis=2)
 
 
