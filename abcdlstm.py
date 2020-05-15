@@ -11,12 +11,11 @@ def batcher(data,epochs,batchsize):
     for e in range(epochs):
         shuffle(pointers)
         for pointer in range(0,len(pointers),batchsize):
-            batch={"seq":list(), "next":list(), "mask":list(), "bdmask":list(), "slen":list()}
+            batch={"seq":list(), "next":list(), "slen":list()}
             for p in pointers[pointer:pointer+batchsize]:
                 batch["seq"].append(data["seq"][p])
                 batch["next"].append(data["next"][p])
-                batch["mask"].append(data["mask"][p])
-                batch["bdmask"].append(data["bdmask"][p])
+                batch["slen"].append(data["slen"][p])
             yield e,batch,len(batch["seq"])
 
 
