@@ -104,7 +104,7 @@ if __name__ == '__main__':
         acc_sum=0
         m_sum=0
         for epoch,batch,bs in batcher(train,epochs,batch_size):
-            feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfmask:batch["slen"], tfbs:bs}
+            feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfslen:batch["slen"], tfbs:bs}
             _, loss_val = sess.run([optimizer,loss], feed_dict=feed_dict)
 
             loss_sum=loss_sum+loss_val
@@ -117,7 +117,7 @@ if __name__ == '__main__':
                 dloss_sum=0
                 dn=0
                 for depoch,dbatch,dbs in batcher(dev,1,batch_size):
-                    feed_dict={tfseq:dbatch["seq"], tfnext:dbatch["next"], tfmask:dbatch["slen"], tfbs:dbs}
+                    feed_dict={tfseq:dbatch["seq"], tfnext:dbatch["next"], tfslen:dbatch["slen"], tfbs:dbs}
                     dloss_val, = sess.run([loss], feed_dict=feed_dict)
                     dloss_sum=dloss_sum+dloss_val
                     dn=dn+dbs
