@@ -16,14 +16,14 @@ def batcher(data,epochs,batchsize):
         if n%batchsize > 0:
             batches=batches+[(l,n%batchsize)]
     for e in range(epochs):
-        shuffle(pointers)
         shuffle(batches)
         pointer=dict()
         for l in data:
+            shuffle(pointers[l])
             pointer[l]=0
         for l,bs in batches:
             batch={"seq":list(), "next":list(), "slen":list()}
-            for p in pointers[pointer[l]:pointer[l]+bs]:
+            for p in pointers[l][pointer[l]:pointer[l]+bs]:
                 batch["seq"].append(padlist(data[l]["seq"][p],l))
                 batch["next"].append(padlist(data[l]["next"][p],l))
                 batch["slen"].append(data[l]["slen"][p])
