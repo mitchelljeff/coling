@@ -28,7 +28,7 @@ def batcher(data,epochs,batchsize):
                 batch["next"].append(padlist(data[l]["next"][p],l))
                 batch["slen"].append(data[l]["slen"][p])
             pointer[l]=pointer[l]+bs
-            yield e,batch,bs
+            yield e,batch,l,bs
 
 
 if __name__ == '__main__':
@@ -80,12 +80,13 @@ if __name__ == '__main__':
 
     with graph.as_default():
 
-        tfseq  =tf.placeholder(tf.int32,shape=[None,max_seq])
-        tfnext =tf.placeholder(tf.int32,shape=[None,max_seq])
+        tfseq  =tf.placeholder(tf.int32,shape=[None,None])
+        tfnext =tf.placeholder(tf.int32,shape=[None,None])
         tfslen =tf.placeholder(tf.int32,shape=[None])
+        tfl    =tf.placeholder(tf.int32,shape=[])
         tfbs   =tf.placeholder(tf.int32,shape=[])
         
-        tfmask = tf.sequence_mask(tfslen,maxlen=max_seq,dtype=tf.float32)
+        tfmask = tf.sequence_mask(tfslen,maxlen=tfl,dtype=tf.float32)
 
         e=tf.get_variable("e", shape=[v_size, emb_size], initializer=tf.contrib.layers.xavier_initializer())
         
@@ -127,8 +128,8 @@ if __name__ == '__main__':
         acc_sum=0
         m_sum=0
         start=time()
-        for epoch,batch,bs in batcher(train,epochs,batch_size):
-            feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfslen:batch["slen"], tfbs:bs}
+        for epoch,batch,l,bs in batcher(train,epochs,batch_size):
+            feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfslen:batch["slen"], tfl:l, tfbs:bs}
             _, loss_val = sess.run([optimizer,loss], feed_dict=feed_dict)
 
             loss_sum=loss_sum+loss_val
