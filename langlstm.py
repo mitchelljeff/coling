@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 from random import shuffle
+from time import time
 
 def padlist(l,max_seq):
     return l+[0]*(max_seq-len(l))
@@ -17,6 +18,15 @@ def batcher(data,epochs,batchsize,max_seq):
                 batch["slen"].append(data["slen"][p])
             yield e,batch,len(batch["seq"])
 
+#def batcher(data,epochs,batchsize,max_seq):
+#    for e in range(epochs):
+#        for pointer in range(0,len(data["seq"]),batchsize):
+#            batch=dict()
+#            batch["seq"]=padlist(data["seq"][pointer:pointer+batchsize],max_seq)
+#            batch["next"]=padlist(data["next"][pointer:pointer+batchsize],max_seq)
+#            batch["slen"]=data["slen"][pointer:pointer+batchsize]
+#            yield e,batch,len(batch["seq"])
+
 
 if __name__ == '__main__':
     
@@ -26,7 +36,7 @@ if __name__ == '__main__':
     emb_size  =650
     rate      = 0.001
 
-    max_seq   =33
+    max_seq   =25
 
     vocab=dict()
     vocab["<PAD>"]=0
@@ -108,8 +118,10 @@ if __name__ == '__main__':
         r=100
         dr=1000
         loss_sum=0
+        loss_val=0
         acc_sum=0
         m_sum=0
+        start=time()
         for epoch,batch,bs in batcher(train,epochs,batch_size,max_seq):
             feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfslen:batch["slen"], tfbs:bs}
             _, loss_val = sess.run([optimizer,loss], feed_dict=feed_dict)
@@ -117,9 +129,10 @@ if __name__ == '__main__':
             loss_sum=loss_sum+loss_val
             n=n+bs
             if i%r == 0:
-                print("train:",epoch,n,loss_sum/n)
+                print("train:",epoch,n,loss_sum/n,(time()-start)/n)
                 loss_sum=0
                 n=0
+                start=time()
             if (i-r)%dr == 0:
                 dloss_sum=0
                 dn=0
