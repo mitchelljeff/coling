@@ -38,7 +38,7 @@ if __name__ == '__main__':
     lstm_size =650
     emb_size  =650
     rate      = 0.001
-    lens      = [25]
+    lens      = [17,25,33,50]
 
     max_seq   =25
 
