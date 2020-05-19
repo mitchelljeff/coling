@@ -6,26 +6,29 @@ from time import time
 def padlist(l,max_seq):
     return l+[0]*(max_seq-len(l))
 
-def batcher(data,epochs,batchsize,max_seq):
-    pointers=list(range(len(data["seq"])))
+def batcher(data,epochs,batchsize):
+    pointers=dict()
+    batches=list()
+    for l in data:
+        n=len(data[l]["seq"])
+        pointers[l]=list(range(n))
+        batches=batches+[(l,batchsize)]*(n//batchsize)
+        if n%batchsize > 0:
+            batches=batches+[(l,n%batchsize)]
     for e in range(epochs):
         shuffle(pointers)
-        for pointer in range(0,len(pointers),batchsize):
+        shuffle(batches)
+        pointer=dict()
+        for l in data:
+            pointer[l]=0
+        for l,bs in batches:
             batch={"seq":list(), "next":list(), "slen":list()}
-            for p in pointers[pointer:pointer+batchsize]:
-                batch["seq"].append(padlist(data["seq"][p],max_seq))
-                batch["next"].append(padlist(data["next"][p],max_seq))
-                batch["slen"].append(data["slen"][p])
-            yield e,batch,len(batch["seq"])
-
-#def batcher(data,epochs,batchsize,max_seq):
-#    for e in range(epochs):
-#        for pointer in range(0,len(data["seq"]),batchsize):
-#            batch=dict()
-#            batch["seq"]=padlist(data["seq"][pointer:pointer+batchsize],max_seq)
-#            batch["next"]=padlist(data["next"][pointer:pointer+batchsize],max_seq)
-#            batch["slen"]=data["slen"][pointer:pointer+batchsize]
-#            yield e,batch,len(batch["seq"])
+            for p in pointers[pointer[l]:pointer[l]+bs]:
+                batch["seq"].append(padlist(data[l]["seq"][p],l))
+                batch["next"].append(padlist(data[l]["next"][p],l))
+                batch["slen"].append(data[l]["slen"][p])
+            pointer[l]=pointer[l]+bs
+            yield e,batch,bs
 
 
 if __name__ == '__main__':
@@ -35,6 +38,7 @@ if __name__ == '__main__':
     lstm_size =650
     emb_size  =650
     rate      = 0.001
+    lens      = [25,50,100]
 
     max_seq   =25
 
@@ -49,28 +53,29 @@ if __name__ == '__main__':
             i=i+1
     v_size=len(vocab)
 
-
-    train={"seq":list(), "next":list(), "slen":list()}
-    dev={"seq":list(), "next":list(), "slen":list()}
-    test={"seq":list(), "next":list(), "slen":list()}
-    longdev={"seq":list(), "next":list(), "slen":list()}
+    train=dict()
+    dev=dict()
+    test=dict()
+    for l in lens:
+        for split in [train,dev,test]:
+            split[l]={"seq":list(), "next":list(), "slen":list()}
     for split,fname in [(train,"train.txt"),(dev,"valid.txt"),(test,"test.txt")]:
         with open(fname) as f:
             for line in f:
                 seq=list()
                 next=list()
                 tokens=line.split()
-                if len(tokens)>max_seq:
-                    continue
                 for i,token in enumerate(tokens):
                     seq.append(vocab[token])
                     if i>0:
                         next.append(vocab[token])
                 next.append(vocab["<END>"])
                 slen=len(tokens)
-                split["seq"].append(seq)
-                split["next"].append(next)
-                split["slen"].append(slen)
+                for l in lens:
+                    if slen<=l:
+                        split[l]["seq"].append(seq)
+                        split[l]["next"].append(next)
+                        split[l]["slen"].append(slen)
     graph=tf.Graph()
 
     with graph.as_default():
