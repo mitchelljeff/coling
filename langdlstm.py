@@ -39,6 +39,8 @@ if __name__ == '__main__':
     emb_size  =650
     rate      = 0.001
     lens      = [17,25,33,50]
+    dropout   = 0.2
+    keep_prob = 1-dropout
 
     max_seq   =25
 
@@ -94,9 +96,9 @@ if __name__ == '__main__':
 
         embedded=tf.gather(e,tfseq)
 
-        lstm1 = tf.nn.rnn_cell.LSTMCell(lstm_size)
+        lstm1 = tf.nn.rnn_cell.DropoutWrapper(tf.nn.rnn_cell.LSTMCell(lstm_size),input_keep_prob=keep_prob,output_keep_prob=keep_prob)
         state1 = lstm1.zero_state(tfbs,dtype=tf.float32)
-        lstm2 = tf.nn.rnn_cell.LSTMCell(lstm_size)
+        lstm2 = tf.nn.rnn_cell.DropoutWrapper(tf.nn.rnn_cell.LSTMCell(lstm_size),output_keep_prob=keep_prob)
         state2 = lstm2.zero_state(tfbs,dtype=tf.float32)
         #inputs=tf.unstack(embedded,axis=1)
         #outputs=[None]*max_seq
