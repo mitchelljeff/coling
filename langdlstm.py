@@ -133,6 +133,7 @@ if __name__ == '__main__':
         n=0
         r=100
         dr=1000
+        best_dloss=1000000
         loss_sum=0
         loss_val=0
         acc_sum=0
@@ -159,6 +160,9 @@ if __name__ == '__main__':
                 dloss_sum=dloss_sum+dloss_val*dbs
                 dn=dn+dbs
             print("***** val:",epoch,dn,dloss_sum/dn,exp(dloss_sum/dn), "*****")
+            if dloss_sum/dn < best_dloss:
+                best_dloss=dloss_sum/dn
+                saver.save(sess,"model.pt")
             dloss_sum=0
             dn=0
 
