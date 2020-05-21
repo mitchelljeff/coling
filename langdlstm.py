@@ -39,7 +39,7 @@ if __name__ == '__main__':
     lstm_size =650
     emb_size  =650
     rate      = 10
-    lens      = [17,25,33,50]
+    lens      = [17,25,33,50,100]
     dropout   = 0.2
     keep_prob = 1-dropout
     clip      = 0.25
