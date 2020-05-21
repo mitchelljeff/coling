@@ -118,7 +118,7 @@ if __name__ == '__main__':
         gvs  = opt.compute_gradients(loss)
         grads=[grad for grad,var in gvs]
         vs   =[var for grad,var in gvs]
-        clipped_gs = tf.clip_by_global_norm(grads, clip)
+        clipped_gs, norm = tf.clip_by_global_norm(grads, clip)
         clipped_gvs = zip(clipped_gs, vs)
         descend = opt.apply_gradients(clipped_gvs)
         init = tf.initialize_all_variables()
