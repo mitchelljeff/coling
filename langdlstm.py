@@ -152,15 +152,15 @@ if __name__ == '__main__':
                     start=time()
                 dloss_sum=0
                 dn=0
-                for depoch,dbatch,dl,dbs in batcher(dev,1,batch_size):
-                    feed_dict={tfseq:dbatch["seq"], tfnext:dbatch["next"], tfslen:dbatch["slen"], tfl:dl, tfbs:dbs}
-                    dloss_val, = sess.run([loss], feed_dict=feed_dict)
-                    dloss_sum=dloss_sum+dloss_val*dbs
-                    dn=dn+dbs
-                print("***** val:",epoch,dn,dloss_sum/dn,exp(dloss_sum/dn), "*****")
-                dloss_sum=0
-                dn=0
-            i=i+1
+                i=i+1
+            for depoch,dbatch,dl,dbs in batcher(dev,1,batch_size):
+                feed_dict={tfseq:dbatch["seq"], tfnext:dbatch["next"], tfslen:dbatch["slen"], tfl:dl, tfbs:dbs}
+                dloss_val, = sess.run([loss], feed_dict=feed_dict)
+                dloss_sum=dloss_sum+dloss_val*dbs
+                dn=dn+dbs
+            print("***** val:",epoch,dn,dloss_sum/dn,exp(dloss_sum/dn), "*****")
+            dloss_sum=0
+            dn=0
 
 
 
