@@ -80,6 +80,7 @@ if __name__ == '__main__':
                         split[l]["seq"].append(seq)
                         split[l]["next"].append(next)
                         split[l]["slen"].append(slen)
+                        break
     graph=tf.Graph()
 
     with graph.as_default():
