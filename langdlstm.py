@@ -37,10 +37,11 @@ if __name__ == '__main__':
     batch_size=64
     lstm_size =650
     emb_size  =650
-    rate      = 0.001
+    rate      = 10
     lens      = [17,25,33,50]
     dropout   = 0.2
     keep_prob = 1-dropout
+    clip      = 0.25
 
     max_seq   =25
 
@@ -113,7 +114,13 @@ if __name__ == '__main__':
 
 
         loss = tf.contrib.seq2seq.sequence_loss(logits,tfnext,tfmask)
-        optimizer = tf.train.AdamOptimizer(rate).minimize(loss)
+        opt = tf.train.GradientDescentOptimizer(rate)
+        gvs  = opt.compute_gradients(loss)
+        grads=[grad for grad,var in gvs]
+        vs   =[var for grad,var in gvs]
+        clipped_gs = tf.clip_by_global_norm(grads, clip)
+        clipped_gvs = zip(clipped_gs, vs)
+        descend = opt.apply_gradients(clipped_gvs)
         init = tf.initialize_all_variables()
 
         saver=tf.train.Saver()
@@ -132,7 +139,7 @@ if __name__ == '__main__':
         start=time()
         for epoch,batch,l,bs in batcher(train,epochs,batch_size):
             feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfslen:batch["slen"], tfl:l, tfbs:bs}
-            _, loss_val = sess.run([optimizer,loss], feed_dict=feed_dict)
+            _, loss_val = sess.run([descend,loss], feed_dict=feed_dict)
 
             loss_sum=loss_sum+loss_val
             n=n+bs
