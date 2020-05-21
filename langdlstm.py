@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 from random import shuffle
 from time import time
+from math import exp
 
 def padlist(l,max_seq):
     return l+[0]*(max_seq-len(l))
@@ -137,26 +138,26 @@ if __name__ == '__main__':
         acc_sum=0
         m_sum=0
         start=time()
-        for epoch,batch,l,bs in batcher(train,epochs,batch_size):
-            feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfslen:batch["slen"], tfl:l, tfbs:bs}
-            _, loss_val = sess.run([descend,loss], feed_dict=feed_dict)
+        for epoch in range(epochs):
+            for e,batch,l,bs in batcher(train,1,batch_size):
+                feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfslen:batch["slen"], tfl:l, tfbs:bs}
+                _, loss_val = sess.run([descend,loss], feed_dict=feed_dict)
 
-            loss_sum=loss_sum+loss_val*bs
-            n=n+bs
-            if i%r == 0:
-                print("train:",epoch,n,loss_sum/n,(time()-start)/n)
-                loss_sum=0
-                n=0
-                start=time()
-            if (i-r)%dr == 0:
+                loss_sum=loss_sum+loss_val*bs
+                n=n+bs
+                if i%r == 0:
+                    print("train:",epoch,n,loss_sum/n,exp(loss_sum/n),(time()-start)/n)
+                    loss_sum=0
+                    n=0
+                    start=time()
                 dloss_sum=0
                 dn=0
-                #for depoch,dbatch,dbs in batcher(dev,1,batch_size):
-                #    feed_dict={tfseq:dbatch["seq"], tfnext:dbatch["next"], tfslen:dbatch["slen"], tfbs:dbs}
-                #    dloss_val, = sess.run([loss], feed_dict=feed_dict)
-                #    dloss_sum=dloss_sum+dloss_val
-                #    dn=dn+dbs
-                #print("***** val:",epoch,dn,dloss_sum/dn, "*****")
+                for depoch,dbatch,dl,dbs in batcher(dev,1,batch_size):
+                    feed_dict={tfseq:dbatch["seq"], tfnext:dbatch["next"], tfslen:dbatch["slen"], tfl:dl, tfbs:dbs}
+                    dloss_val, = sess.run([loss], feed_dict=feed_dict)
+                    dloss_sum=dloss_sum+dloss_val*dbs
+                    dn=dn+dbs
+                print("***** val:",epoch,dn,dloss_sum/dn,exp(dloss_sum/dn), "*****")
                 dloss_sum=0
                 dn=0
             i=i+1
