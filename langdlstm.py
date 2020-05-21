@@ -141,7 +141,7 @@ if __name__ == '__main__':
             feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfslen:batch["slen"], tfl:l, tfbs:bs}
             _, loss_val = sess.run([descend,loss], feed_dict=feed_dict)
 
-            loss_sum=loss_sum+loss_val
+            loss_sum=loss_sum+loss_val*bs
             n=n+bs
             if i%r == 0:
                 print("train:",epoch,n,loss_sum/n,(time()-start)/n)
