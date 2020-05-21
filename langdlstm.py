@@ -163,7 +163,7 @@ if __name__ == '__main__':
             print("***** val:",epoch,dn,dloss_sum/dn,exp(dloss_sum/dn), "*****")
             if dloss_sum/dn < best_dloss:
                 best_dloss=dloss_sum/dn
-                save_path=saver.save(sess,"model.ckpt")
+                save_path=saver.save(sess,"./model.ckpt")
             dloss_sum=0
             dn=0
 
