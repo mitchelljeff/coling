@@ -70,7 +70,7 @@ if __name__ == '__main__':
                     flag=1
                 else:
                     l=(i-1)//2
-                    c=line.split()[4]
+                    c=line.split("\t")[4]
                     if l in cdict:
                         assert cdict[l]==c, str(l)+" "+c+" "+cdict[l]
                     else:
