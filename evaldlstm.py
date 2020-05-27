@@ -68,9 +68,13 @@ if __name__ == '__main__':
                 next=list()
                 tokens=line.split()
                 for i,token in enumerate(tokens):
-                    seq.append(vocab[token])
+                    if token in vocab:
+                        t=vocab[token]
+                    else:
+                        t=vocab["<unk>"]
+                    seq.append(t)
                     if i>0:
-                        next.append(vocab[token])
+                        next.append(t)
                 next.append(vocab["<END>"])
                 slen=len(tokens)
                 for l in lens:
