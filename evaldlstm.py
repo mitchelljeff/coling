@@ -61,8 +61,14 @@ if __name__ == '__main__':
     for l in lens:
         for split in [eval]:
             split[l]={"seq":list(), "next":list(), "slen":list()}
-    for split,fname,tname in [(eval,"generated.text","generated.tab")]:
+    for split,fname,tname,ename in [(eval,"generated.text","generated.tab","generated.eval")]:
+        tdict=dict()
+        with open(ename) as e:
+            for i,line in enumerate(e):
+                t=int(line)
+                tdict[i]=t
         cdict=dict()
+        spdict={"correct":dict(), "wrong":dict()}
         with open(tname) as t:
             flag=0
             for i,line in enumerate(t):
@@ -71,10 +77,13 @@ if __name__ == '__main__':
                 else:
                     l=(i-1)//2
                     c=line.split("\t")[6]
+                    sp=line.split("\t")[4]
+                    cw=line.split("\t")[5]
                     if l in cdict:
                         assert cdict[l]==c, str(l)+" "+c+" "+cdict[l]
                     else:
                         cdict[l]=c
+                    spdict[cw][l]=sp
         with open(fname) as f:
             for j,line in enumerate(f):
                 seq=list()
