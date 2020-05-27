@@ -57,9 +57,7 @@ if __name__ == '__main__':
             i=i+1
     v_size=len(vocab)
 
-    train=dict()
-    dev=dict()
-    test=dict()
+    eval=dict()
     for l in lens:
         for split in [eval]:
             split[l]={"seq":list(), "next":list(), "slen":list()}
