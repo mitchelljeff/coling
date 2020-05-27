@@ -61,9 +61,20 @@ if __name__ == '__main__':
     for l in lens:
         for split in [eval]:
             split[l]={"seq":list(), "next":list(), "slen":list()}
-    for split,fname in [(eval,"generated.text")]:
+    for split,fname,tname in [(eval,"generated.text","generated.tab")]:
+        cdict=dict()
+        with open(tname) as t:
+            flag=0
+            for i,line in enumerate(t):
+                if flag==0:
+                    flag=1
+                else:
+                    l=(i-1)//2
+                    c=line.split()[4]
+                    if l in cdict:
+                        assert cdict[l]=c
         with open(fname) as f:
-            for line in f:
+            for i,line in enumerate(f):
                 seq=list()
                 next=list()
                 tokens=line.split()
@@ -77,12 +88,13 @@ if __name__ == '__main__':
                         next.append(t)
                 next.append(vocab["<END>"])
                 slen=len(tokens)
-                for l in lens:
-                    if slen<=l:
-                        split[l]["seq"].append(seq)
-                        split[l]["next"].append(next)
-                        split[l]["slen"].append(slen)
-                        break
+                if cdict[i]=="original":
+                    for l in lens:
+                        if slen<=l:
+                            split[l]["seq"].append(seq)
+                            split[l]["next"].append(next)
+                            split[l]["slen"].append(slen)
+                            break
     graph=tf.Graph()
 
     with graph.as_default():
