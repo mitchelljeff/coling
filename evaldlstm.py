@@ -73,8 +73,10 @@ if __name__ == '__main__':
                     c=line.split()[4]
                     if l in cdict:
                         assert cdict[l]==c
+                    else:
+                        cdict[l]=c
         with open(fname) as f:
-            for i,line in enumerate(f):
+            for j,line in enumerate(f):
                 seq=list()
                 next=list()
                 tokens=line.split()
@@ -88,7 +90,7 @@ if __name__ == '__main__':
                         next.append(t)
                 next.append(vocab["<END>"])
                 slen=len(tokens)
-                if cdict[i]=="original":
+                if cdict[j]=="original":
                     for l in lens:
                         if slen<=l:
                             split[l]["seq"].append(seq)
