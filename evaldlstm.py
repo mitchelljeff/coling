@@ -145,7 +145,7 @@ if __name__ == '__main__':
         for epoch in range(1):
             for e,batch,l,bs in batcher(eval,1,batch_size):
                 feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfslen:batch["slen"], tfl:l, tfbs:bs}
-                loss_val = sess.run([loss], feed_dict=feed_dict)
+                loss_val, = sess.run([loss], feed_dict=feed_dict)
 
                 loss_sum=loss_sum+loss_val*bs
                 n=n+bs
