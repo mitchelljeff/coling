@@ -72,7 +72,7 @@ if __name__ == '__main__':
                     l=(i-1)//2
                     c=line.split()[4]
                     if l in cdict:
-                        assert cdict[l]=c
+                        assert cdict[l]==c
         with open(fname) as f:
             for i,line in enumerate(f):
                 seq=list()
