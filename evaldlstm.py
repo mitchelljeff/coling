@@ -125,7 +125,7 @@ if __name__ == '__main__':
         clipped_gs, norm = tf.clip_by_global_norm(grads, clip)
         clipped_gvs = zip(clipped_gs, vs)
         descend = opt.apply_gradients(clipped_gvs)
-        init = tf.initialize_all_variables()
+        #init = tf.initialize_all_variables()
 
         saver=tf.train.Saver()
 
