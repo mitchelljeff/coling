@@ -39,7 +39,7 @@ if __name__ == '__main__':
     lstm_size =650
     emb_size  =650
     rate      = 10
-    lens      = [17,25,33,50,100]
+    lens      = [100]
     dropout   = 0.2
     keep_prob = 1-dropout
     clip      = 0.25
@@ -61,9 +61,9 @@ if __name__ == '__main__':
     dev=dict()
     test=dict()
     for l in lens:
-        for split in [train,dev,test]:
+        for split in [eval]:
             split[l]={"seq":list(), "next":list(), "slen":list()}
-    for split,fname in [(train,"train.txt"),(dev,"valid.txt"),(test,"test.txt")]:
+    for split,fname in [(eval,"generated.text")]:
         with open(fname) as f:
             for line in f:
                 seq=list()
@@ -128,11 +128,11 @@ if __name__ == '__main__':
         saver=tf.train.Saver()
 
     with tf.Session(graph=graph) as sess:
-        sess.run(init)
+        saver.restore(sess,"./model.ckpt")
 
         i=1
         n=0
-        r=100
+        r=1
         dr=1000
         best_dloss=1000000
         loss_sum=0
@@ -140,32 +140,14 @@ if __name__ == '__main__':
         acc_sum=0
         m_sum=0
         start=time()
-        for epoch in range(epochs):
-            for e,batch,l,bs in batcher(train,1,batch_size):
+        for epoch in range(1):
+            for e,batch,l,bs in batcher(eval,1,batch_size):
                 feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfslen:batch["slen"], tfl:l, tfbs:bs}
-                _, loss_val = sess.run([descend,loss], feed_dict=feed_dict)
+                loss_val = sess.run([loss], feed_dict=feed_dict)
 
                 loss_sum=loss_sum+loss_val*bs
                 n=n+bs
-                if i%r == 0:
-                    print("train:",epoch,n,loss_sum/n,exp(loss_sum/n),(time()-start)/n)
-                    loss_sum=0
-                    n=0
-                    start=time()
-                dloss_sum=0
-                dn=0
-                i=i+1
-            for depoch,dbatch,dl,dbs in batcher(dev,1,batch_size):
-                feed_dict={tfseq:dbatch["seq"], tfnext:dbatch["next"], tfslen:dbatch["slen"], tfl:dl, tfbs:dbs}
-                dloss_val, = sess.run([loss], feed_dict=feed_dict)
-                dloss_sum=dloss_sum+dloss_val*dbs
-                dn=dn+dbs
-            print("***** val:",epoch,dn,dloss_sum/dn,exp(dloss_sum/dn), "*****")
-            if dloss_sum/dn < best_dloss:
-                best_dloss=dloss_sum/dn
-                save_path=saver.save(sess,"./model.ckpt")
-            dloss_sum=0
-            dn=0
+        print("eval:",epoch,n,loss_sum/n,exp(loss_sum/n),(time()-start)/n)
 
 
 
