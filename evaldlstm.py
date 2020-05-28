@@ -85,7 +85,7 @@ if __name__ == '__main__':
                         assert cdict[l]==c, str(l)+" "+c+" "+cdict[l]
                     else:
                         cdict[l]=c
-                    spdict[cw][l]=vocab(sp)
+                    spdict[cw][l]=vocab[sp]
         with open(fname) as f:
             for j,line in enumerate(f):
                 seq=list()
