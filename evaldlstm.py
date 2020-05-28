@@ -42,7 +42,7 @@ if __name__ == '__main__':
     emb_size  =650
     rate      = 10
     lens      = [100]
-    dropout   = 0.2
+    dropout   = 0.0
     keep_prob = 1-dropout
     clip      = 0.25
 
