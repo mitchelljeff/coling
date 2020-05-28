@@ -23,11 +23,13 @@ def batcher(data,epochs,batchsize):
             shuffle(pointers[l])
             pointer[l]=0
         for l,bs in batches:
-            batch={"seq":list(), "next":list(), "slen":list()}
-            for p in pointers[l][pointer[l]:pointer[l]+bs]:
+            batch={"seq":list(), "next":list(), "slen":list(), "correct":list(), "wrong":list()}
+            for i,p in enumerate(pointers[l][pointer[l]:pointer[l]+bs]):
                 batch["seq"].append(padlist(data[l]["seq"][p],l))
                 batch["next"].append(padlist(data[l]["next"][p],l))
                 batch["slen"].append(data[l]["slen"][p])
+                batch["correct"].append([i,data[l]["pos"][p],data[l]["correct"][p]])
+                batch["wrong"].append([i,data[l]["pos"][p],data[l]["wrong"][p]])
             pointer[l]=pointer[l]+bs
             yield e,batch,l,bs
 
@@ -60,7 +62,7 @@ if __name__ == '__main__':
     eval=dict()
     for l in lens:
         for split in [eval]:
-            split[l]={"seq":list(), "next":list(), "slen":list()}
+            split[l]={"seq":list(), "next":list(), "slen":list(), "correct":list(), "wrong":list(), "pos":list()}
     for split,fname,tname,ename in [(eval,"generated.text","generated.tab","generated.eval")]:
         tdict=dict()
         with open(ename) as e:
@@ -83,7 +85,7 @@ if __name__ == '__main__':
                         assert cdict[l]==c, str(l)+" "+c+" "+cdict[l]
                     else:
                         cdict[l]=c
-                    spdict[cw][l]=sp
+                    spdict[cw][l]=vocab(sp)
         with open(fname) as f:
             for j,line in enumerate(f):
                 seq=list()
@@ -105,6 +107,9 @@ if __name__ == '__main__':
                             split[l]["seq"].append(seq)
                             split[l]["next"].append(next)
                             split[l]["slen"].append(slen)
+                            split[l]["correct"].append(spdict["correct"][j])
+                            split[l]["correct"].append(spdict["wrong"][j])
+                            split[l]["pos"].append(tdict[j])
                             break
     graph=tf.Graph()
 
@@ -115,6 +120,10 @@ if __name__ == '__main__':
         tfslen =tf.placeholder(tf.int32,shape=[None])
         tfl    =tf.placeholder(tf.int32,shape=[])
         tfbs   =tf.placeholder(tf.int32,shape=[])
+
+        tfcorrect  =tf.placeholder(tf.int32,shape=[None,3])
+        tfwrong    =tf.placeholder(tf.int32,shape=[None,3])        
+        
         
         tfmask = tf.sequence_mask(tfslen,maxlen=tfl,dtype=tf.float32)
 
@@ -138,6 +147,10 @@ if __name__ == '__main__':
         outputs1, state=tf.nn.dynamic_rnn(lstm1, embedded, sequence_length=tfslen, initial_state=state1, dtype=tf.float32, scope="layer1")
         outputs2, state=tf.nn.dynamic_rnn(lstm2, outputs1, sequence_length=tfslen, initial_state=state2, dtype=tf.float32, scope="layer2")
         logits=tf.tensordot(outputs2,w,axes=[[2],[0]])
+        
+        clogit=tf.gather_nd(logits,tfcorrect)
+        wlogit=tf.gether_nd(logits,tfwrong)
+        cwdiff=clogit-wlogit
 
 
         loss = tf.contrib.seq2seq.sequence_loss(logits,tfnext,tfmask)
@@ -162,17 +175,21 @@ if __name__ == '__main__':
         best_dloss=1000000
         loss_sum=0
         loss_val=0
+        n_correct=0
         acc_sum=0
         m_sum=0
         start=time()
         for epoch in range(1):
             for e,batch,l,bs in batcher(eval,1,batch_size):
-                feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfslen:batch["slen"], tfl:l, tfbs:bs}
-                loss_val, = sess.run([loss], feed_dict=feed_dict)
+                feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfslen:batch["slen"], tfcorrect:batch["correct"], tfwrong:batch["wrong"], tfl:l, tfbs:bs}
+                loss_val, cwd_vals = sess.run([loss], feed_dict=feed_dict, cwdiff)
 
                 loss_sum=loss_sum+loss_val*bs
+                for cwd in cwd_vals:
+                    if cwd>0:
+                        n_correct+=1
                 n=n+bs
-        print("eval:",epoch,n,loss_sum/n,exp(loss_sum/n),(time()-start)/n)
+        print("eval:",epoch,n,loss_sum/n,exp(loss_sum/n),n_correct/n,(time()-start)/n)
 
 
 
