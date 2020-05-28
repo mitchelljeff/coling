@@ -92,6 +92,7 @@ if __name__ == '__main__':
         tfbs   =tf.placeholder(tf.int32,shape=[])
         
         tfrate =tf.placeholder(tf.float32,shape=[])
+        tfkp   =tf.placeholder(tf.float32,shape=[])
         
         tfmask = tf.sequence_mask(tfslen,maxlen=tfl,dtype=tf.float32)
 
@@ -101,9 +102,9 @@ if __name__ == '__main__':
 
         embedded=tf.gather(e,tfseq)
 
-        lstm1 = tf.nn.rnn_cell.DropoutWrapper(tf.nn.rnn_cell.LSTMCell(lstm_size),input_keep_prob=keep_prob,output_keep_prob=keep_prob)
+        lstm1 = tf.nn.rnn_cell.DropoutWrapper(tf.nn.rnn_cell.LSTMCell(lstm_size),input_keep_prob=tfkp,output_keep_prob=tfkp)
         state1 = lstm1.zero_state(tfbs,dtype=tf.float32)
-        lstm2 = tf.nn.rnn_cell.DropoutWrapper(tf.nn.rnn_cell.LSTMCell(lstm_size),output_keep_prob=keep_prob)
+        lstm2 = tf.nn.rnn_cell.DropoutWrapper(tf.nn.rnn_cell.LSTMCell(lstm_size),output_keep_prob=tfkp)
         state2 = lstm2.zero_state(tfbs,dtype=tf.float32)
         #inputs=tf.unstack(embedded,axis=1)
         #outputs=[None]*max_seq
@@ -144,7 +145,8 @@ if __name__ == '__main__':
         start=time()
         for epoch in range(epochs):
             for e,batch,l,bs in batcher(train,1,batch_size):
-                feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfslen:batch["slen"], tfl:l, tfbs:bs, tfrate:rate}
+                keep_prob = 1-dropout
+                feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfslen:batch["slen"], tfl:l, tfbs:bs, tfrate:rate, tfkp:keep_prob}
                 _, loss_val = sess.run([descend,loss], feed_dict=feed_dict)
 
                 loss_sum=loss_sum+loss_val*bs
@@ -158,7 +160,7 @@ if __name__ == '__main__':
                 dn=0
                 i=i+1
             for depoch,dbatch,dl,dbs in batcher(dev,1,batch_size):
-                feed_dict={tfseq:dbatch["seq"], tfnext:dbatch["next"], tfslen:dbatch["slen"], tfl:dl, tfbs:dbs}
+                feed_dict={tfseq:dbatch["seq"], tfnext:dbatch["next"], tfslen:dbatch["slen"], tfl:dl, tfbs:dbs, tfkp:1.0}
                 dloss_val, = sess.run([loss], feed_dict=feed_dict)
                 dloss_sum=dloss_sum+dloss_val*dbs
                 dn=dn+dbs
