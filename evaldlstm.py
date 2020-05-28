@@ -101,7 +101,7 @@ if __name__ == '__main__':
                         next.append(t)
                 next.append(vocab["<END>"])
                 slen=len(tokens)
-                if cdict[j]=="generated":
+                if cdict[j]=="original":
                     for l in lens:
                         if slen<=l:
                             split[l]["seq"].append(seq)
