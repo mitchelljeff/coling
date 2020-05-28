@@ -168,8 +168,10 @@ if __name__ == '__main__':
             if dloss_sum/dn < best_dloss:
                 best_dloss=dloss_sum/dn
                 save_path=saver.save(sess,"./model.ckpt")
+                print("saving to:", save_path)
             else:
                 rate=rate/4.0
+                print("lowering rate to:", rate)
             dloss_sum=0
             dn=0
 
