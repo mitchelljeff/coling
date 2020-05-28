@@ -108,7 +108,7 @@ if __name__ == '__main__':
                             split[l]["next"].append(next)
                             split[l]["slen"].append(slen)
                             split[l]["correct"].append(spdict["correct"][j])
-                            split[l]["correct"].append(spdict["wrong"][j])
+                            split[l]["wrong"].append(spdict["wrong"][j])
                             split[l]["pos"].append(tdict[j])
                             break
     graph=tf.Graph()
