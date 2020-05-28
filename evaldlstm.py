@@ -182,7 +182,7 @@ if __name__ == '__main__':
         for epoch in range(1):
             for e,batch,l,bs in batcher(eval,1,batch_size):
                 feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfslen:batch["slen"], tfcorrect:batch["correct"], tfwrong:batch["wrong"], tfl:l, tfbs:bs}
-                loss_val, cwd_vals = sess.run([loss], feed_dict=feed_dict, cwdiff)
+                loss_val, cwd_vals = sess.run([loss, cwdiff], feed_dict=feed_dict)
 
                 loss_sum=loss_sum+loss_val*bs
                 for cwd in cwd_vals:
