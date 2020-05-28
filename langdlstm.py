@@ -91,6 +91,8 @@ if __name__ == '__main__':
         tfl    =tf.placeholder(tf.int32,shape=[])
         tfbs   =tf.placeholder(tf.int32,shape=[])
         
+        tfrate =tf.placeholder(tf.float32,shape=[])
+        
         tfmask = tf.sequence_mask(tfslen,maxlen=tfl,dtype=tf.float32)
 
         e=tf.get_variable("e", shape=[v_size, emb_size], initializer=tf.contrib.layers.xavier_initializer())
@@ -116,7 +118,7 @@ if __name__ == '__main__':
 
 
         loss = tf.contrib.seq2seq.sequence_loss(logits,tfnext,tfmask)
-        opt = tf.train.GradientDescentOptimizer(rate)
+        opt = tf.train.GradientDescentOptimizer(tfrate)
         gvs  = opt.compute_gradients(loss)
         grads=[grad for grad,var in gvs]
         vs   =[var for grad,var in gvs]
@@ -142,7 +144,7 @@ if __name__ == '__main__':
         start=time()
         for epoch in range(epochs):
             for e,batch,l,bs in batcher(train,1,batch_size):
-                feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfslen:batch["slen"], tfl:l, tfbs:bs}
+                feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfslen:batch["slen"], tfl:l, tfbs:bs, tfrate:rate}
                 _, loss_val = sess.run([descend,loss], feed_dict=feed_dict)
 
                 loss_sum=loss_sum+loss_val*bs
@@ -164,6 +166,8 @@ if __name__ == '__main__':
             if dloss_sum/dn < best_dloss:
                 best_dloss=dloss_sum/dn
                 save_path=saver.save(sess,"./model.ckpt")
+            else:
+                rate=rate/4.0
             dloss_sum=0
             dn=0
 
