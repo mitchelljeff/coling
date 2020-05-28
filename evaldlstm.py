@@ -149,7 +149,7 @@ if __name__ == '__main__':
         logits=tf.tensordot(outputs2,w,axes=[[2],[0]])
         
         clogit=tf.gather_nd(logits,tfcorrect)
-        wlogit=tf.gether_nd(logits,tfwrong)
+        wlogit=tf.gather_nd(logits,tfwrong)
         cwdiff=clogit-wlogit
 
 
