@@ -191,7 +191,7 @@ if __name__ == '__main__':
                 for arr in grad_vals:
                     flat.append(arr.flatten())
                 v=np.concatenate(flat)
-                np.shape(v)
+                print(np.shape(v))
                 n=n+bs
 
 
