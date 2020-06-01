@@ -187,7 +187,7 @@ if __name__ == '__main__':
             for e,batch,l,bs in batcher(eval,1,batch_size):
                 feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfslen:batch["slen"], tfcorrect:batch["correct"], tfwrong:batch["wrong"], tfl:l, tfbs:bs}
                 grad_vals, = sess.run([lstmgrads], feed_dict=feed_dict)
-                print(np.shape(grad_vals))
+                print(grad_vals)
                 n=n+bs
 
 
