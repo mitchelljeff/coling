@@ -184,7 +184,7 @@ if __name__ == '__main__':
         m_sum=0
         start=time()
         for epoch in range(1):
-            for e,batch,l,bs in batcher(eval,1,batch_size):
+            for e,batch,l,bs in batcher(eval,1,1):
                 feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfslen:batch["slen"], tfcorrect:batch["correct"], tfwrong:batch["wrong"], tfl:l, tfbs:bs}
                 grad_vals, = sess.run([lstmgrads], feed_dict=feed_dict)
                 for arr in grad_vals:
