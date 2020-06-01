@@ -151,6 +151,9 @@ if __name__ == '__main__':
         clogit=tf.gather_nd(logits,tfcorrect)
         wlogit=tf.gather_nd(logits,tfwrong)
         cwdiff=clogit-wlogit
+        
+        lstmvars=tf.trainable_variables(scope="layer")
+        lstmgrads=tf.gradients(cwdiff,lstmvars)
 
 
         loss = tf.contrib.seq2seq.sequence_loss(logits,tfnext,tfmask)
@@ -182,14 +185,9 @@ if __name__ == '__main__':
         for epoch in range(1):
             for e,batch,l,bs in batcher(eval,1,batch_size):
                 feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfslen:batch["slen"], tfcorrect:batch["correct"], tfwrong:batch["wrong"], tfl:l, tfbs:bs}
-                loss_val, cwd_vals = sess.run([loss, cwdiff], feed_dict=feed_dict)
+                grad_vals, = sess.run([loss, lstm_grads], feed_dict=feed_dict)
 
-                loss_sum=loss_sum+loss_val*bs
-                for cwd in cwd_vals:
-                    if cwd>0:
-                        n_correct+=1
                 n=n+bs
-        print("eval:",epoch,n,loss_sum/n,exp(loss_sum/n),n_correct/n,(time()-start)/n)
 
 
 
