@@ -25,13 +25,14 @@ def batcher(data,epochs,batchsize):
             shuffle(pointers[l])
             pointer[l]=0
         for l,bs in batches:
-            batch={"seq":list(), "next":list(), "slen":list(), "correct":list(), "wrong":list()}
+            batch={"seq":list(), "next":list(), "slen":list(), "correct":list(), "wrong":list(), "form":list()}
             for i,p in enumerate(pointers[l][pointer[l]:pointer[l]+bs]):
                 batch["seq"].append(padlist(data[l]["seq"][p],l))
                 batch["next"].append(padlist(data[l]["next"][p],l))
                 batch["slen"].append(data[l]["slen"][p])
                 batch["correct"].append([i,data[l]["pos"][p],data[l]["correct"][p]])
                 batch["wrong"].append([i,data[l]["pos"][p],data[l]["wrong"][p]])
+                batch["form"].append(data[l]["form"][p])
             pointer[l]=pointer[l]+bs
             yield e,batch,l,bs
 
@@ -64,7 +65,7 @@ if __name__ == '__main__':
     eval=dict()
     for l in lens:
         for split in [eval]:
-            split[l]={"seq":list(), "next":list(), "slen":list(), "correct":list(), "wrong":list(), "pos":list()}
+            split[l]={"seq":list(), "next":list(), "slen":list(), "correct":list(), "wrong":list(), "pos":list(), "form":list()}
     for split,fname,tname,ename in [(eval,"generated.text","generated.tab","generated.eval")]:
         tdict=dict()
         with open(ename) as e:
@@ -73,6 +74,7 @@ if __name__ == '__main__':
                 tdict[i]=t
         cdict=dict()
         spdict={"correct":dict(), "wrong":dict()}
+        fdict ={"correct":dict(), "wrong":dict()}
         with open(tname) as t:
             flag=0
             for i,line in enumerate(t):
@@ -83,11 +85,13 @@ if __name__ == '__main__':
                     c=line.split("\t")[6]
                     sp=line.split("\t")[4]
                     cw=line.split("\t")[5]
+                    form=line.split("\t")[3]
                     if l in cdict:
                         assert cdict[l]==c, str(l)+" "+c+" "+cdict[l]
                     else:
                         cdict[l]=c
                     spdict[cw][l]=vocab[sp]
+                    fdict[cw][l]=
         with open(fname) as f:
             for j,line in enumerate(f):
                 seq=list()
@@ -112,6 +116,7 @@ if __name__ == '__main__':
                             split[l]["correct"].append(spdict["correct"][j])
                             split[l]["wrong"].append(spdict["wrong"][j])
                             split[l]["pos"].append(tdict[j])
+                            split[l]["form"].append(fdict["correct"][j])
                             break
     graph=tf.Graph()
 
@@ -186,6 +191,7 @@ if __name__ == '__main__':
         start=time()
         for epoch in range(1):
             vs=dict()
+            fdict=dict()
             i=0
             for e,batch,l,bs in batcher(eval,1,1):
                 feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfslen:batch["slen"], tfcorrect:batch["correct"], tfwrong:batch["wrong"], tfl:l, tfbs:bs}
@@ -195,12 +201,14 @@ if __name__ == '__main__':
                     flat.append(arr.flatten())
                 v=np.concatenate(flat)
                 vs[i]=v
+                fdict[i]=batch["form"][0]
                 i=i+1
                 n=n+bs
             for i in vs:
                 for j in vs:
-                    c=cosine(vs[i],vs[j])
-                    print(c)
+                    if i != j:
+                        c=cosine(vs[i],vs[j])
+                        print(c,fdict[i],fdict[j],fdict[i]==fdict[j])
 
 
 
