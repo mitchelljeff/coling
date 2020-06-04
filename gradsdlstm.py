@@ -91,7 +91,7 @@ if __name__ == '__main__':
                     else:
                         cdict[l]=c
                     spdict[cw][l]=vocab[sp]
-                    fdict[cw][l]=
+                    fdict[cw][l]=form
         with open(fname) as f:
             for j,line in enumerate(f):
                 seq=list()
