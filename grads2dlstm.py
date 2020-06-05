@@ -230,7 +230,7 @@ if __name__ == '__main__':
                 j=batch["s_id"][0]
                 ids[j][batch["from"][0]].append(v)
                 fdict[j]=batch["form"][0]
-                print(i)
+                #print(i)
                 i=i+1
                 n=n+bs
             for i in ids:
