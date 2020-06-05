@@ -6,6 +6,8 @@ from math import exp
 import numpy as np
 from scipy.spatial.distance import cosine
 
+splookup={"sing":{"correct":"sing", "wrong":"plur"}, "plur":{"correct":"plur", "wrong":"sing"}}
+
 def padlist(l,max_seq):
     return l+[0]*(max_seq-len(l))
 
@@ -75,6 +77,7 @@ if __name__ == '__main__':
         cdict=dict()
         spdict={"correct":dict(), "wrong":dict()}
         fdict ={"correct":dict(), "wrong":dict()}
+        splist=list()
         with open(tname) as t:
             flag=0
             for i,line in enumerate(t):
@@ -88,8 +91,12 @@ if __name__ == '__main__':
                     form=line.split("\t")[3]
                     if l in cdict:
                         assert cdict[l]==c, str(l)+" "+c+" "+cdict[l]
+                        assert len(spd)==1, str(spd)
+                        spd[splookup[form][cw]]=sp
+                        splist.append(spd)
                     else:
                         cdict[l]=c
+                        spd={splookup[form][cw]:sp}
                     spdict[cw][l]=vocab[sp]
                     fdict[cw][l]=form
         with open(fname) as f:
@@ -189,7 +196,7 @@ if __name__ == '__main__':
         acc_sum=0
         m_sum=0
         start=time()
-        for epoch in range(1):
+        for epoch in range(0):
             vs=dict()
             fdict=dict()
             i=0
