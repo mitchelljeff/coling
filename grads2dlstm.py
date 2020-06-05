@@ -27,7 +27,7 @@ def batcher(data,epochs,batchsize):
             shuffle(pointers[l])
             pointer[l]=0
         for l,bs in batches:
-            batch={"seq":list(), "next":list(), "slen":list(), "correct":list(), "wrong":list(), "form":list()}
+            batch={"seq":list(), "next":list(), "slen":list(), "correct":list(), "wrong":list(), "form":list(), "from":list()}
             for i,p in enumerate(pointers[l][pointer[l]:pointer[l]+bs]):
                 batch["seq"].append(padlist(data[l]["seq"][p],l))
                 batch["next"].append(padlist(data[l]["next"][p],l))
@@ -35,6 +35,7 @@ def batcher(data,epochs,batchsize):
                 batch["correct"].append([i,data[l]["pos"][p],data[l]["correct"][p]])
                 batch["wrong"].append([i,data[l]["pos"][p],data[l]["wrong"][p]])
                 batch["form"].append(data[l]["form"][p])
+                batch["from"].append(data[l]["from"][p])
             pointer[l]=pointer[l]+bs
             yield e,batch,l,bs
 
@@ -67,7 +68,7 @@ if __name__ == '__main__':
     eval=dict()
     for l in lens:
         for split in [eval]:
-            split[l]={"seq":list(), "next":list(), "slen":list(), "correct":list(), "wrong":list(), "pos":list(), "form":list()}
+            split[l]={"seq":list(), "next":list(), "slen":list(), "correct":list(), "wrong":list(), "pos":list(), "form":list(), "from":list()}
     for split,fname,tname,ename in [(eval,"generated.text","generated.tab","generated.eval")]:
         tdict=dict()
         with open(ename) as e:
@@ -124,6 +125,19 @@ if __name__ == '__main__':
                             split[l]["wrong"].append(spdict["wrong"][j])
                             split[l]["pos"].append(tdict[j])
                             split[l]["form"].append(fdict["correct"][j])
+                            split[l]["from"].append("original")
+                            for spd in splist:
+                                c=fdict["correct"][j]
+                                w=splookup[fdict["correct"][j]]["wrong"]
+                                if spd[c]!=spdict["correct"][j]:
+                                    split[l]["seq"].append(seq)
+                                    split[l]["next"].append(next)
+                                    split[l]["slen"].append(slen)
+                                    split[l]["correct"].append(spd[c])
+                                    split[l]["wrong"].append(spd[w])
+                                    split[l]["pos"].append(tdict[j])
+                                    split[l]["form"].append(fdict["correct"][j])
+                                    split[l]["from"].append("generated")
                             break
     graph=tf.Graph()
 
@@ -199,6 +213,7 @@ if __name__ == '__main__':
         for epoch in range(0):
             vs=dict()
             fdict=dict()
+            f2dict=dict()
             i=0
             for e,batch,l,bs in batcher(eval,1,1):
                 feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfslen:batch["slen"], tfcorrect:batch["correct"], tfwrong:batch["wrong"], tfl:l, tfbs:bs}
@@ -209,6 +224,7 @@ if __name__ == '__main__':
                 v=np.concatenate(flat)
                 vs[i]=v
                 fdict[i]=batch["form"][0]
+                f2dict[i]=batch["from"][0]
                 i=i+1
                 n=n+bs
             for i in vs:
