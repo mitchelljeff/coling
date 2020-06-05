@@ -27,7 +27,7 @@ def batcher(data,epochs,batchsize):
             shuffle(pointers[l])
             pointer[l]=0
         for l,bs in batches:
-            batch={"seq":list(), "next":list(), "slen":list(), "correct":list(), "wrong":list(), "form":list(), "from":list()}
+            batch={"seq":list(), "next":list(), "slen":list(), "correct":list(), "wrong":list(), "form":list(), "from":list(), "s_id":list()}
             for i,p in enumerate(pointers[l][pointer[l]:pointer[l]+bs]):
                 batch["seq"].append(padlist(data[l]["seq"][p],l))
                 batch["next"].append(padlist(data[l]["next"][p],l))
@@ -36,6 +36,7 @@ def batcher(data,epochs,batchsize):
                 batch["wrong"].append([i,data[l]["pos"][p],data[l]["wrong"][p]])
                 batch["form"].append(data[l]["form"][p])
                 batch["from"].append(data[l]["from"][p])
+                batch["s_id"].append(data[l]["s_id"][p])
             pointer[l]=pointer[l]+bs
             yield e,batch,l,bs
 
@@ -68,7 +69,7 @@ if __name__ == '__main__':
     eval=dict()
     for l in lens:
         for split in [eval]:
-            split[l]={"seq":list(), "next":list(), "slen":list(), "correct":list(), "wrong":list(), "pos":list(), "form":list(), "from":list()}
+            split[l]={"seq":list(), "next":list(), "slen":list(), "correct":list(), "wrong":list(), "pos":list(), "form":list(), "from":list(), "s_id":list()}
     for split,fname,tname,ename in [(eval,"generated.text","generated.tab","generated.eval")]:
         tdict=dict()
         with open(ename) as e:
@@ -79,6 +80,7 @@ if __name__ == '__main__':
         spdict={"correct":dict(), "wrong":dict()}
         fdict ={"correct":dict(), "wrong":dict()}
         splist=list()
+        ids   =dict()
         with open(tname) as t:
             flag=0
             for i,line in enumerate(t):
@@ -126,6 +128,8 @@ if __name__ == '__main__':
                             split[l]["pos"].append(tdict[j])
                             split[l]["form"].append(fdict["correct"][j])
                             split[l]["from"].append("original")
+                            split[l]["s_id"].append(j)
+                            ids[j]={"original":list(), "generated":list())
                             for spd in splist:
                                 c=fdict["correct"][j]
                                 w=splookup[fdict["correct"][j]]["wrong"]
@@ -138,6 +142,7 @@ if __name__ == '__main__':
                                     split[l]["pos"].append(tdict[j])
                                     split[l]["form"].append(fdict["correct"][j])
                                     split[l]["from"].append("generated")
+                                    split[l]["s_id"].append(j)
                             break
     graph=tf.Graph()
 
@@ -210,7 +215,7 @@ if __name__ == '__main__':
         acc_sum=0
         m_sum=0
         start=time()
-        for epoch in range(0):
+        for epoch in range(1):
             vs=dict()
             fdict=dict()
             f2dict=dict()
@@ -222,16 +227,22 @@ if __name__ == '__main__':
                 for arr in grad_vals:
                     flat.append(arr.flatten())
                 v=np.concatenate(flat)
-                vs[i]=v
-                fdict[i]=batch["form"][0]
-                f2dict[i]=batch["from"][0]
+                j=batch["s_id"][0]
+                ids[j][batch["from"][0]].append(v)
+                fdict[j]=batch["form"][0]
                 i=i+1
                 n=n+bs
-            for i in vs:
-                for j in vs:
+            for i in ids:
+                assert len(ids[i]["original"])==1, str(len(ids[i]["original"]))
+                v1=ids[j]["original"][0]
+                for v2 in ids[j]["generated"]:
+                    c=cosine(v1,v2)
+                    print(c,fdict[i],fdict[i],fdict[i]==fdict[i],"same")
+                for j in ids:
                     if i != j:
-                        c=cosine(vs[i],vs[j])
-                        print(c,fdict[i],fdict[j],fdict[i]==fdict[j])
+                        v2=ids[j]["original"][0]
+                        c=cosine(v1,v2)
+                        print(c,fdict[i],fdict[j],fdict[i]==fdict[j],"diff")
 
 
 
