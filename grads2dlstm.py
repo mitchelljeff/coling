@@ -99,7 +99,7 @@ if __name__ == '__main__':
                         splist.append(spd)
                     else:
                         cdict[l]=c
-                        spd={splookup[form][cw]:sp}
+                        spd={splookup[form][cw]:vocab[sp]}
                     spdict[cw][l]=vocab[sp]
                     fdict[cw][l]=form
         with open(fname) as f:
