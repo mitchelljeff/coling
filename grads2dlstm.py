@@ -129,7 +129,7 @@ if __name__ == '__main__':
                             split[l]["form"].append(fdict["correct"][j])
                             split[l]["from"].append("original")
                             split[l]["s_id"].append(j)
-                            ids[j]={"original":list(), "generated":list())
+                            ids[j]={"original":list(), "generated":list()}
                             for spd in splist:
                                 c=fdict["correct"][j]
                                 w=splookup[fdict["correct"][j]]["wrong"]
