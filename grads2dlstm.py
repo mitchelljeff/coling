@@ -95,7 +95,7 @@ if __name__ == '__main__':
                     if l in cdict:
                         assert cdict[l]==c, str(l)+" "+c+" "+cdict[l]
                         assert len(spd)==1, str(spd)
-                        spd[splookup[form][cw]]=sp
+                        spd[splookup[form][cw]]=vocab[sp]
                         splist.append(spd)
                     else:
                         cdict[l]=c
