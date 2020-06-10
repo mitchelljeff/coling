@@ -219,8 +219,6 @@ if __name__ == '__main__':
                 i=i+1
                 n=n+bs
             for v1,j1,f12,f1 in vs:
-                assert len(ids[i]["original"])==1, str(len(ids[i]["original"]))
-                v1=ids[j]["original"][0]
                 for v2 in v2,j2,f22,f2 in vs:
                     if j1!=j2:
                         c=cosine(v1,v2)
