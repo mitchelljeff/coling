@@ -70,7 +70,7 @@ if __name__ == '__main__':
     for l in lens:
         for split in [eval]:
             split[l]={"seq":list(), "next":list(), "slen":list(), "correct":list(), "wrong":list(), "pos":list(), "form":list(), "from":list(), "s_id":list()}
-    for split,fname,tname,ename in [(eval,"generated.text","generated.tab","generated.eval")]:
+    for split,fname,tname,ename,from in [(eval,"generated.text","generated.tab","generated.eval","modified"),(eval,"../generated.text","../generated.tab","../generated.eval","unmodified")]:
         tdict=dict()
         with open(ename) as e:
             for i,line in enumerate(e):
@@ -127,22 +127,9 @@ if __name__ == '__main__':
                             split[l]["wrong"].append(spdict["wrong"][j])
                             split[l]["pos"].append(tdict[j])
                             split[l]["form"].append(fdict["correct"][j])
-                            split[l]["from"].append("original")
+                            split[l]["from"].append(from)
                             split[l]["s_id"].append(j)
                             ids[j]={"original":list(), "generated":list()}
-                            for spd in splist:
-                                c=fdict["correct"][j]
-                                w=splookup[fdict["correct"][j]]["wrong"]
-                                if spd[c]!=spdict["correct"][j]:
-                                    split[l]["seq"].append(seq)
-                                    split[l]["next"].append(next)
-                                    split[l]["slen"].append(slen)
-                                    split[l]["correct"].append(spd[c])
-                                    split[l]["wrong"].append(spd[w])
-                                    split[l]["pos"].append(tdict[j])
-                                    split[l]["form"].append(fdict["correct"][j])
-                                    split[l]["from"].append("generated")
-                                    split[l]["s_id"].append(j)
                             break
     graph=tf.Graph()
 
@@ -216,7 +203,7 @@ if __name__ == '__main__':
         m_sum=0
         start=time()
         for epoch in range(1):
-            vs=dict()
+            vs=list()
             fdict=dict()
             f2dict=dict()
             i=0
@@ -227,23 +214,17 @@ if __name__ == '__main__':
                 for arr in grad_vals:
                     flat.append(arr.flatten())
                 v=np.concatenate(flat)
-                j=batch["s_id"][0]
-                ids[j][batch["from"][0]].append(v)
-                fdict[j]=batch["form"][0]
+                vs.append([v,batch["s_id"][0],batch["from"][0],batch["form"][0]])
                 #print(i)
                 i=i+1
                 n=n+bs
-            for i in ids:
+            for v1,j1,f12,f1 in vs:
                 assert len(ids[i]["original"])==1, str(len(ids[i]["original"]))
                 v1=ids[j]["original"][0]
-                for v2 in ids[j]["generated"]:
-                    c=cosine(v1,v2)
-                    print(c,fdict[i],fdict[i],fdict[i]==fdict[i],"same")
-                for j in ids:
-                    if i != j:
-                        v2=ids[j]["original"][0]
+                for v2 in v2,j2,f22,f2 in vs:
+                    if j1!=j2:
                         c=cosine(v1,v2)
-                        print(c,fdict[i],fdict[j],fdict[i]==fdict[j],"diff")
+                        print(c,f1,f2,f1==f2,f12,f22,f12==f22)
 
 
 
