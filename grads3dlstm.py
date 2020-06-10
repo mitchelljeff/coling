@@ -70,7 +70,7 @@ if __name__ == '__main__':
     for l in lens:
         for split in [eval]:
             split[l]={"seq":list(), "next":list(), "slen":list(), "correct":list(), "wrong":list(), "pos":list(), "form":list(), "from":list(), "s_id":list()}
-    for split,fname,tname,ename,from in [(eval,"generated.text","generated.tab","generated.eval","modified"),(eval,"../generated.text","../generated.tab","../generated.eval","unmodified")]:
+    for split,fname,tname,ename,frm in [(eval,"generated.text","generated.tab","generated.eval","modified"),(eval,"../generated.text","../generated.tab","../generated.eval","unmodified")]:
         tdict=dict()
         with open(ename) as e:
             for i,line in enumerate(e):
@@ -127,7 +127,7 @@ if __name__ == '__main__':
                             split[l]["wrong"].append(spdict["wrong"][j])
                             split[l]["pos"].append(tdict[j])
                             split[l]["form"].append(fdict["correct"][j])
-                            split[l]["from"].append(from)
+                            split[l]["from"].append(frm)
                             split[l]["s_id"].append(j)
                             ids[j]={"original":list(), "generated":list()}
                             break
