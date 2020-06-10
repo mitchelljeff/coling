@@ -219,7 +219,7 @@ if __name__ == '__main__':
                 i=i+1
                 n=n+bs
             for v1,j1,f12,f1 in vs:
-                for v2 in v2,j2,f22,f2 in vs:
+                for v2,j2,f22,f2 in vs:
                     if j1!=j2:
                         c=cosine(v1,v2)
                         print(c,f1,f2,f1==f2,f12,f22,f12==f22)
