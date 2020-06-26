@@ -230,17 +230,19 @@ if __name__ == '__main__':
                 #print(i)
                 i=i+1
                 n=n+bs
-            for i in ids:
+            for i in [s_id]:
                 assert len(ids[i]["original"])==1, str(len(ids[i]["original"]))
-                v1=ids[j]["original"][0]
-                for v2 in ids[j]["generated"]:
+                v1=ids[i]["original"][0]
+                for v2 in ids[i]["generated"]:
                     c=cosine(v1,v2)
                     print(c,fdict[i],fdict[i],fdict[i]==fdict[i],"same")
-                for j in ids:
-                    if i != j:
-                        v2=ids[j]["original"][0]
-                        c=cosine(v1,v2)
-                        print(c,fdict[i],fdict[j],fdict[i]==fdict[j],"diff")
+                ids[i]["generated"]=list()
+        for i in ids:
+            for j in ids:
+                if i != j:
+                    v2=ids[j]["original"][0]
+                    c=cosine(v1,v2)
+                    print(c,fdict[i],fdict[j],fdict[i]==fdict[j],"diff")
 
 
 
