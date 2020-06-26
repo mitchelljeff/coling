@@ -14,30 +14,26 @@ def padlist(l,max_seq):
 def batcher(data,epochs,batchsize):
     pointers=dict()
     batches=list()
-    for l in data:
-        n=len(data[l]["seq"])
-        pointers[l]=list(range(n))
-        batches=batches+[(l,batchsize)]*(n//batchsize)
-        if n%batchsize > 0:
-            batches=batches+[(l,n%batchsize)]
+    n=len(data["seq"])
+    pointers[l]=list(range(n))
+    batches=batches+[batchsize]*(n//batchsize)
+    if n%batchsize > 0:
+        batches=batches+[n%batchsize]
     for e in range(epochs):
         shuffle(batches)
-        pointer=dict()
-        for l in data:
-            shuffle(pointers[l])
-            pointer[l]=0
-        for l,bs in batches:
+        pointer=0
+        for bs in batches:
             batch={"seq":list(), "next":list(), "slen":list(), "correct":list(), "wrong":list(), "form":list(), "from":list(), "s_id":list()}
-            for i,p in enumerate(pointers[l][pointer[l]:pointer[l]+bs]):
-                batch["seq"].append(padlist(data[l]["seq"][p],l))
-                batch["next"].append(padlist(data[l]["next"][p],l))
-                batch["slen"].append(data[l]["slen"][p])
-                batch["correct"].append([i,data[l]["pos"][p],data[l]["correct"][p]])
-                batch["wrong"].append([i,data[l]["pos"][p],data[l]["wrong"][p]])
-                batch["form"].append(data[l]["form"][p])
-                batch["from"].append(data[l]["from"][p])
-                batch["s_id"].append(data[l]["s_id"][p])
-            pointer[l]=pointer[l]+bs
+            for i,p in enumerate(pointers[pointer:pointer+bs]):
+                batch["seq"].append(padlist(data["seq"][p],100))
+                batch["next"].append(padlist(data["next"][p],100))
+                batch["slen"].append(data["slen"][p])
+                batch["correct"].append([i,data["pos"][p],data["correct"][p]])
+                batch["wrong"].append([i,data["pos"][p],data["wrong"][p]])
+                batch["form"].append(data["form"][p])
+                batch["from"].append(data["from"][p])
+                batch["s_id"].append(data["s_id"][p])
+            pointer=pointer+bs
             yield e,batch,l,bs
 
 
@@ -65,85 +61,87 @@ if __name__ == '__main__':
             vocab[token]=i
             i=i+1
     v_size=len(vocab)
-
+    
     eval=dict()
-    for l in lens:
-        for split in [eval]:
-            split[l]={"seq":list(), "next":list(), "slen":list(), "correct":list(), "wrong":list(), "pos":list(), "form":list(), "from":list(), "s_id":list()}
-    for split,fname,tname,ename in [(eval,"generated.text","generated.tab","generated.eval")]:
-        tdict=dict()
-        with open(ename) as e:
-            for i,line in enumerate(e):
-                t=int(line)
-                tdict[i]=t
-        cdict=dict()
-        spdict={"correct":dict(), "wrong":dict()}
-        fdict ={"correct":dict(), "wrong":dict()}
-        splist=list()
-        ids   =dict()
-        with open(tname) as t:
-            flag=0
-            for i,line in enumerate(t):
-                if flag==0:
-                    flag=1
+    for s_id in range(410):
+        eval[s_id]=dict()
+        eval[s_id]={"seq":list(), "next":list(), "slen":list(), "correct":list(), "wrong":list(), "pos":list(), "form":list(), "from":list(), "s_id":list()}
+    fname,tname,ename = ("generated.text","generated.tab","generated.eval")
+    tdict=dict()
+    with open(ename) as e:
+        for i,line in enumerate(e):
+            t=int(line)
+            tdict[i]=t
+    cdict=dict()
+    spdict={"correct":dict(), "wrong":dict()}
+    fdict ={"correct":dict(), "wrong":dict()}
+    splist=list()
+    ids   =dict()
+    with open(tname) as t:
+        flag=0
+        for i,line in enumerate(t):
+            if flag==0:
+                flag=1
+            else:
+            l=(i-1)//2
+            c=line.split("\t")[6]
+            sp=line.split("\t")[4]
+            cw=line.split("\t")[5]
+            form=line.split("\t")[3]
+            if l in cdict:
+                assert cdict[l]==c, str(l)+" "+c+" "+cdict[l]
+                assert len(spd)==1, str(spd)
+                spd[splookup[form][cw]]=vocab[sp]
+                splist.append(spd)
+            else:
+                cdict[l]=c
+                spd={splookup[form][cw]:vocab[sp]}
+            spdict[cw][l]=vocab[sp]
+            fdict[cw][l]=form
+    with open(fname) as f:
+        for j,line in enumerate(f):
+            seq=list()
+            next=list()
+            tokens=line.split()
+            for i,token in enumerate(tokens):
+                if token in vocab:
+                    t=vocab[token]
                 else:
-                    l=(i-1)//2
-                    c=line.split("\t")[6]
-                    sp=line.split("\t")[4]
-                    cw=line.split("\t")[5]
-                    form=line.split("\t")[3]
-                    if l in cdict:
-                        assert cdict[l]==c, str(l)+" "+c+" "+cdict[l]
-                        assert len(spd)==1, str(spd)
-                        spd[splookup[form][cw]]=vocab[sp]
-                        splist.append(spd)
-                    else:
-                        cdict[l]=c
-                        spd={splookup[form][cw]:vocab[sp]}
-                    spdict[cw][l]=vocab[sp]
-                    fdict[cw][l]=form
-        with open(fname) as f:
-            for j,line in enumerate(f):
-                seq=list()
-                next=list()
-                tokens=line.split()
-                for i,token in enumerate(tokens):
-                    if token in vocab:
-                        t=vocab[token]
-                    else:
-                        t=vocab["<unk>"]
-                    seq.append(t)
-                    if i>0:
-                        next.append(t)
-                next.append(vocab["<END>"])
-                slen=len(tokens)
-                if cdict[j]=="original":
-                    for l in lens:
-                        if slen<=l:
-                            split[l]["seq"].append(seq)
-                            split[l]["next"].append(next)
-                            split[l]["slen"].append(slen)
-                            split[l]["correct"].append(spdict["correct"][j])
-                            split[l]["wrong"].append(spdict["wrong"][j])
-                            split[l]["pos"].append(tdict[j])
-                            split[l]["form"].append(fdict["correct"][j])
-                            split[l]["from"].append("original")
-                            split[l]["s_id"].append(j)
-                            ids[j]={"original":list(), "generated":list()}
-                            for spd in splist:
-                                c=fdict["correct"][j]
-                                w=splookup[fdict["correct"][j]]["wrong"]
-                                if spd[c]!=spdict["correct"][j]:
-                                    split[l]["seq"].append(seq)
-                                    split[l]["next"].append(next)
-                                    split[l]["slen"].append(slen)
-                                    split[l]["correct"].append(spd[c])
-                                    split[l]["wrong"].append(spd[w])
-                                    split[l]["pos"].append(tdict[j])
-                                    split[l]["form"].append(fdict["correct"][j])
-                                    split[l]["from"].append("generated")
-                                    split[l]["s_id"].append(j)
-                            break
+                    t=vocab["<unk>"]
+                seq.append(t)
+                if i>0:
+                    next.append(t)
+            next.append(vocab["<END>"])
+            slen=len(tokens)
+            if cdict[j]=="original":
+                eval[j]["seq"].append(seq)
+                eval[j]["next"].append(next)
+                eval[j]["slen"].append(slen)
+                eval[j]["correct"].append(spdict["correct"][j])
+                eval[j]["wrong"].append(spdict["wrong"][j])
+                eval[j]["pos"].append(tdict[j])
+                eval[j]["form"].append(fdict["correct"][j])
+                eval[j]["from"].append("original")
+                eval[j]["s_id"].append(j)
+                ids[j]={"original":list(), "generated":list()}
+                for spd in splist:
+                    c=fdict["correct"][j]
+                    w=splookup[fdict["correct"][j]]["wrong"]
+                    if spd[c]!=spdict["correct"][j]:
+                        eval[j]["seq"].append(seq)
+                        eval[j]["next"].append(next)
+                        eval[j]["slen"].append(slen)
+                        eval[j]["correct"].append(spd[c])
+                        eval[j]["wrong"].append(spd[w])
+                        eval[j]["pos"].append(tdict[j])
+                        eval[j]["form"].append(fdict["correct"][j])
+                        eval[j]["from"].append("generated")
+                        eval[j]["s_id"].append(j)
+    
+    for s_id in range(410):
+        if len(eval[s_id]["seq"])==0:
+            del eval[s_id]
+    
     graph=tf.Graph()
 
     with graph.as_default():
@@ -215,12 +213,12 @@ if __name__ == '__main__':
         acc_sum=0
         m_sum=0
         start=time()
-        for epoch in range(1):
+        for s_id in range(eval):
             vs=dict()
             fdict=dict()
             f2dict=dict()
             i=0
-            for e,batch,l,bs in batcher(eval,1,1):
+            for e,batch,l,bs in batcher(eval[s_id],1,1):
                 feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfslen:batch["slen"], tfcorrect:batch["correct"], tfwrong:batch["wrong"], tfl:l, tfbs:bs}
                 grad_vals, = sess.run([lstmgrads], feed_dict=feed_dict)
                 flat=list()
