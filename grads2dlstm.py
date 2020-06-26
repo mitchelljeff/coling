@@ -213,10 +213,8 @@ if __name__ == '__main__':
         acc_sum=0
         m_sum=0
         start=time()
+        fdict=dict()
         for s_id in eval:
-            vs=dict()
-            fdict=dict()
-            f2dict=dict()
             i=0
             for e,batch,l,bs in batcher(eval[s_id],1,1):
                 feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfslen:batch["slen"], tfcorrect:batch["correct"], tfwrong:batch["wrong"], tfl:l, tfbs:bs}
