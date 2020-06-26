@@ -83,21 +83,21 @@ if __name__ == '__main__':
             if flag==0:
                 flag=1
             else:
-            l=(i-1)//2
-            c=line.split("\t")[6]
-            sp=line.split("\t")[4]
-            cw=line.split("\t")[5]
-            form=line.split("\t")[3]
-            if l in cdict:
-                assert cdict[l]==c, str(l)+" "+c+" "+cdict[l]
-                assert len(spd)==1, str(spd)
-                spd[splookup[form][cw]]=vocab[sp]
-                splist.append(spd)
-            else:
-                cdict[l]=c
-                spd={splookup[form][cw]:vocab[sp]}
-            spdict[cw][l]=vocab[sp]
-            fdict[cw][l]=form
+                l=(i-1)//2
+                c=line.split("\t")[6]
+                sp=line.split("\t")[4]
+                cw=line.split("\t")[5]
+                form=line.split("\t")[3]
+                if l in cdict:
+                    assert cdict[l]==c, str(l)+" "+c+" "+cdict[l]
+                    assert len(spd)==1, str(spd)
+                    spd[splookup[form][cw]]=vocab[sp]
+                    splist.append(spd)
+                else:
+                    cdict[l]=c
+                    spd={splookup[form][cw]:vocab[sp]}
+                spdict[cw][l]=vocab[sp]
+                fdict[cw][l]=form
     with open(fname) as f:
         for j,line in enumerate(f):
             seq=list()
