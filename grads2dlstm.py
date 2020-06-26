@@ -91,7 +91,8 @@ if __name__ == '__main__':
                     assert cdict[l]==c, str(l)+" "+c+" "+cdict[l]
                     assert len(spd)==1, str(spd)
                     spd[splookup[form][cw]]=vocab[sp]
-                    splist.append(spd)
+                    if c=="original":
+                        splist.append(spd)
                 else:
                     cdict[l]=c
                     spd={splookup[form][cw]:vocab[sp]}
@@ -238,11 +239,13 @@ if __name__ == '__main__':
                     print(c,fdict[i],fdict[i],fdict[i]==fdict[i],"same")
                 ids[i]["generated"]=list()
         for i in ids:
-            for j in ids:
-                if i != j:
-                    v2=ids[j]["original"][0]
-                    c=cosine(v1,v2)
-                    print(c,fdict[i],fdict[j],fdict[i]==fdict[j],"diff")
+            if len(ids[i]["original"])==1:
+                v1=ids[i]["original"][0]
+                for j in ids:
+                    if len(ids[j]["original"])==1 and i != j:
+                        v2=ids[j]["original"][0]
+                        c=cosine(v1,v2)
+                        print(c,fdict[i],fdict[j],fdict[i]==fdict[j],"diff")
 
 
 
