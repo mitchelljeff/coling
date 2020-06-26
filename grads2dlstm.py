@@ -213,7 +213,7 @@ if __name__ == '__main__':
         acc_sum=0
         m_sum=0
         start=time()
-        for s_id in range(eval):
+        for s_id in eval:
             vs=dict()
             fdict=dict()
             f2dict=dict()
