@@ -12,10 +12,9 @@ def padlist(l,max_seq):
     return l+[0]*(max_seq-len(l))
 
 def batcher(data,epochs,batchsize):
-    pointers=dict()
     batches=list()
     n=len(data["seq"])
-    pointers[l]=list(range(n))
+    pointers=list(range(n))
     batches=batches+[batchsize]*(n//batchsize)
     if n%batchsize > 0:
         batches=batches+[n%batchsize]
