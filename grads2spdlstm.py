@@ -22,13 +22,13 @@ def batcher(data,epochs,batchsize):
         shuffle(batches)
         pointer=0
         for bs in batches:
-            batch={"seq":list(), "next":list(), "slen":list(), "correct":list(), "wrong":list(), "form":list(), "from":list(), "s_id":list()}
+            batch={"seq":list(), "next":list(), "slen":list(), "singular":list(), "plural":list(), "form":list(), "from":list(), "s_id":list()}
             for i,p in enumerate(pointers[pointer:pointer+bs]):
                 batch["seq"].append(padlist(data["seq"][p],100))
                 batch["next"].append(padlist(data["next"][p],100))
                 batch["slen"].append(data["slen"][p])
-                batch["correct"].append([i,data["pos"][p],data["correct"][p]])
-                batch["wrong"].append([i,data["pos"][p],data["wrong"][p]])
+                batch["singular"].append([i,data["pos"][p],data["singular"][p]])
+                batch["plural"].append([i,data["pos"][p],data["plural"][p]])
                 batch["form"].append(data["form"][p])
                 batch["from"].append(data["from"][p])
                 batch["s_id"].append(data["s_id"][p])
@@ -64,7 +64,7 @@ if __name__ == '__main__':
     eval=dict()
     for s_id in range(410):
         eval[s_id]=dict()
-        eval[s_id]={"seq":list(), "next":list(), "slen":list(), "correct":list(), "wrong":list(), "pos":list(), "form":list(), "from":list(), "s_id":list()}
+        eval[s_id]={"seq":list(), "next":list(), "slen":list(), "singular":list(), "plural":list(), "pos":list(), "form":list(), "from":list(), "s_id":list()}
     fname,tname,ename = ("generated.text","generated.tab","generated.eval")
     tdict=dict()
     with open(ename) as e:
@@ -72,7 +72,7 @@ if __name__ == '__main__':
             t=int(line)
             tdict[i]=t
     cdict=dict()
-    spdict={"correct":dict(), "wrong":dict()}
+    spdict={"singular":dict(), "plural":dict()}
     fdict ={"correct":dict(), "wrong":dict()}
     splist=list()
     ids   =dict()
@@ -86,17 +86,14 @@ if __name__ == '__main__':
                 c=line.split("\t")[6]
                 sp=line.split("\t")[4]
                 cw=line.split("\t")[5]
-                form=line.split("\t")[3]
+                form=splookup[line.split("\t")[3]][cw]
                 if l in cdict:
                     assert cdict[l]==c, str(l)+" "+c+" "+cdict[l]
-                    assert len(spd)==1, str(spd)
-                    spd[splookup[form][cw]]=vocab[sp]
                     if c=="original":
-                        splist.append(spd)
+                        splist.append(l)
                 else:
                     cdict[l]=c
-                    spd={splookup[form][cw]:vocab[sp]}
-                spdict[cw][l]=vocab[sp]
+                spdict[form][l]=vocab[sp]
                 fdict[cw][l]=form
     with open(fname) as f:
         for j,line in enumerate(f):
@@ -117,26 +114,35 @@ if __name__ == '__main__':
                 eval[j]["seq"].append(seq)
                 eval[j]["next"].append(next)
                 eval[j]["slen"].append(slen)
-                eval[j]["correct"].append(spdict["correct"][j])
-                eval[j]["wrong"].append(spdict["wrong"][j])
+                eval[j]["singular"].append(spdict["singular"][j])
+                eval[j]["plural"].append(spdict["plural"][j])
                 eval[j]["pos"].append(tdict[j])
                 eval[j]["form"].append(fdict["correct"][j])
                 eval[j]["from"].append("original")
                 eval[j]["s_id"].append(j)
-                ids[j]={"original":list(), "generated":list()}
-                for spd in splist:
-                    c=fdict["correct"][j]
-                    w=splookup[fdict["correct"][j]]["wrong"]
-                    if spd[c]!=spdict["correct"][j]:
+                ids[j]={"original":list(), "generated1":list(), "generated2":list()}
+                for l in splist:
+                    s=spdict["singular"][l]
+                    p=spdict["plural"][l]
+                    if s!=spdict["singular"][j]:
                         eval[j]["seq"].append(seq)
                         eval[j]["next"].append(next)
                         eval[j]["slen"].append(slen)
-                        eval[j]["correct"].append(spd[c])
-                        eval[j]["wrong"].append(spd[w])
+                        eval[j]["singular"].append(s)
+                        eval[j]["plural"].append(p)
                         eval[j]["pos"].append(tdict[j])
                         eval[j]["form"].append(fdict["correct"][j])
-                        eval[j]["from"].append("generated")
+                        eval[j]["from"].append("generated1")
                         eval[j]["s_id"].append(j)
+                        eval[l]["seq"].append(seq)
+                        eval[l]["next"].append(next)
+                        eval[l]["slen"].append(slen)
+                        eval[l]["singular"].append(s)
+                        eval[l]["plural"].append(p)
+                        eval[l]["pos"].append(tdict[j])
+                        eval[l]["form"].append(fdict["correct"][j])
+                        eval[l]["from"].append("generated2")
+                        eval[l]["s_id"].append(l)
     
     for s_id in range(410):
         if len(eval[s_id]["seq"])==0:
@@ -232,10 +238,14 @@ if __name__ == '__main__':
             for i in [s_id]:
                 assert len(ids[i]["original"])==1, str(len(ids[i]["original"]))
                 v1=ids[i]["original"][0]
-                for v2 in ids[i]["generated"]:
+                for v2 in ids[i]["generated1"]:
                     c=cosine(v1,v2)
-                    print(c,fdict[i],fdict[i],fdict[i]==fdict[i],"same")
-                ids[i]["generated"]=list()
+                    print(c,fdict[i],fdict[i],fdict[i]==fdict[i],"sameprefix")
+                ids[i]["generated1"]=list()
+                for v2 in ids[i]["generated2"]:
+                    c=cosine(v1,v2)
+                    print(c,fdict[i],fdict[i],fdict[i]==fdict[i],"sametarget")
+                ids[i]["generated2"]=list()
         for i in ids:
             if len(ids[i]["original"])==1:
                 v1=ids[i]["original"][0]
