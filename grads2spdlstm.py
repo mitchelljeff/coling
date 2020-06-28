@@ -72,7 +72,7 @@ if __name__ == '__main__':
             t=int(line)
             tdict[i]=t
     cdict=dict()
-    spdict={"singular":dict(), "plural":dict()}
+    spdict={"sing":dict(), "plur":dict()}
     fdict ={"correct":dict(), "wrong":dict()}
     splist=list()
     ids   =dict()
@@ -114,16 +114,16 @@ if __name__ == '__main__':
                 eval[j]["seq"].append(seq)
                 eval[j]["next"].append(next)
                 eval[j]["slen"].append(slen)
-                eval[j]["singular"].append(spdict["singular"][j])
-                eval[j]["plural"].append(spdict["plural"][j])
+                eval[j]["singular"].append(spdict["sing"][j])
+                eval[j]["plural"].append(spdict["plur"][j])
                 eval[j]["pos"].append(tdict[j])
                 eval[j]["form"].append(fdict["correct"][j])
                 eval[j]["from"].append("original")
                 eval[j]["s_id"].append(j)
                 ids[j]={"original":list(), "generated1":list(), "generated2":list()}
                 for l in splist:
-                    s=spdict["singular"][l]
-                    p=spdict["plural"][l]
+                    s=spdict["sing"][l]
+                    p=spdict["plur"][l]
                     if s!=spdict["singular"][j]:
                         eval[j]["seq"].append(seq)
                         eval[j]["next"].append(next)
