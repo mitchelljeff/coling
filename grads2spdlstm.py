@@ -124,7 +124,7 @@ if __name__ == '__main__':
                 for l in splist:
                     s=spdict["sing"][l]
                     p=spdict["plur"][l]
-                    if s!=spdict["singular"][j]:
+                    if s!=spdict["sing"][j]:
                         eval[j]["seq"].append(seq)
                         eval[j]["next"].append(next)
                         eval[j]["slen"].append(slen)
