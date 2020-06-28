@@ -158,8 +158,8 @@ if __name__ == '__main__':
         tfl    =tf.placeholder(tf.int32,shape=[])
         tfbs   =tf.placeholder(tf.int32,shape=[])
 
-        tfcorrect  =tf.placeholder(tf.int32,shape=[None,3])
-        tfwrong    =tf.placeholder(tf.int32,shape=[None,3])        
+        tfsing  =tf.placeholder(tf.int32,shape=[None,3])
+        tfplur  =tf.placeholder(tf.int32,shape=[None,3])        
         
         
         tfmask = tf.sequence_mask(tfslen,maxlen=tfl,dtype=tf.float32)
@@ -185,12 +185,12 @@ if __name__ == '__main__':
         outputs2, state=tf.nn.dynamic_rnn(lstm2, outputs1, sequence_length=tfslen, initial_state=state2, dtype=tf.float32, scope="layer2")
         logits=tf.tensordot(outputs2,w,axes=[[2],[0]])
         
-        clogit=tf.gather_nd(logits,tfcorrect)
-        wlogit=tf.gather_nd(logits,tfwrong)
-        cwdiff=clogit-wlogit
+        slogit=tf.gather_nd(logits,tfsing)
+        plogit=tf.gather_nd(logits,tfplur)
+        spdiff=slogit-plogit
         
         lstmvars=tf.trainable_variables(scope="layer")
-        lstmgrads=tf.gradients(cwdiff,lstmvars)
+        lstmgrads=tf.gradients(spdiff,lstmvars)
 
 
         loss = tf.contrib.seq2seq.sequence_loss(logits,tfnext,tfmask)
@@ -223,7 +223,7 @@ if __name__ == '__main__':
         for s_id in eval:
             i=0
             for e,batch,l,bs in batcher(eval[s_id],1,1):
-                feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfslen:batch["slen"], tfcorrect:batch["correct"], tfwrong:batch["wrong"], tfl:l, tfbs:bs}
+                feed_dict={tfseq:batch["seq"], tfnext:batch["next"], tfslen:batch["slen"], tfsing:batch["singular"], tfplur:batch["plural"], tfl:l, tfbs:bs}
                 grad_vals, = sess.run([lstmgrads], feed_dict=feed_dict)
                 flat=list()
                 for arr in grad_vals:
