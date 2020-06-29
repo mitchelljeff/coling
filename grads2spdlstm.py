@@ -219,7 +219,7 @@ if __name__ == '__main__':
         acc_sum=0
         m_sum=0
         start=time()
-        fdict=dict()
+        #fdict=dict()
         for s_id in eval:
             i=0
             for e,batch,l,bs in batcher(eval[s_id],1,1):
@@ -231,7 +231,7 @@ if __name__ == '__main__':
                 v=np.concatenate(flat)
                 j=batch["s_id"][0]
                 ids[j][batch["from"][0]].append(v)
-                fdict[j]=batch["form"][0]
+                #fdict[j]=batch["form"][0]
                 #print(i)
                 i=i+1
                 n=n+bs
@@ -240,11 +240,11 @@ if __name__ == '__main__':
                 v1=ids[i]["original"][0]
                 for v2 in ids[i]["generated1"]:
                     c=cosine(v1,v2)
-                    print(c,fdict[i],fdict[i],fdict[i]==fdict[i],"sameprefix")
+                    print(c,fdict["correct"][i],fdict["correct"][i],fdict["correct"][i]==fdict["correct"][i],"sameprefix")
                 ids[i]["generated1"]=list()
                 for v2 in ids[i]["generated2"]:
                     c=cosine(v1,v2)
-                    print(c,fdict[i],fdict[i],fdict[i]==fdict[i],"sametarget")
+                    print(c,fdict["correct"][i],fdict["correct"][i],fdict["correct"][i]==fdict["correct"][i],"sametarget")
                 ids[i]["generated2"]=list()
         for i in ids:
             if len(ids[i]["original"])==1:
@@ -253,7 +253,7 @@ if __name__ == '__main__':
                     if len(ids[j]["original"])==1 and i != j:
                         v2=ids[j]["original"][0]
                         c=cosine(v1,v2)
-                        print(c,fdict[i],fdict[j],fdict[i]==fdict[j],"diff")
+                        print(c,fdict["correct"][i],fdict["correct"][j],fdict["correct"][i]==fdict["correct"][j],"diff")
 
 
 
